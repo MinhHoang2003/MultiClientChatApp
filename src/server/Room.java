@@ -66,7 +66,7 @@ public class Room {
     public void sendMessageToRoomate(String userName, String msg) throws IOException {
         for (ServerWorker worker : workers) {
             if (!worker.getAcount().getUserName().equals(userName)) {
-                worker.send(userName + " :" + msg + "\n");
+                worker.send("send "+userName + " " + msg + "\n");
             }
         }
     }

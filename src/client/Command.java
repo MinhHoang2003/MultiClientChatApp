@@ -3,18 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package client;
 
 /**
  *
  * @author hoang
  */
-public class ServerMain {
-
-    public static void main(String[] args) {
-        int port = 8188;
-        Server server = new Server(port);
-        server.start();
-    }
-    
+public enum Command {
+    JOIN,MESSAGE,SEND,LOGIN,REGISTER;
 }

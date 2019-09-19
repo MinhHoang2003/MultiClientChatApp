@@ -42,7 +42,13 @@ public class ServerWorker extends Thread {
         try {
             handlerClientSocket();
         } catch (IOException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                System.out.println("close connection");
+                this.clientSocket.close();
+                handlerOffline();
+            } catch (IOException ex1) {
+                Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex1);
+            }
         }
     }
 
@@ -60,7 +66,6 @@ public class ServerWorker extends Thread {
                     break;
                 } else if ("login".equalsIgnoreCase(cmd)) {
                     handlerLogin(outputStream, tokens);
-
                 } else if ("register".equals(cmd)) {
                     handlerRegister(tokens);
                 } else if ("join".equalsIgnoreCase(cmd)) {
@@ -84,12 +89,15 @@ public class ServerWorker extends Thread {
             if (index >= 0) {
                 //anounce change status and change status in account manager
                 String msg = "ok login\n";
+
                 this.acount = server.getAccountManager().getAccount(index);
                 this.acount.setStatus(AccountStatus.ONLINE);
                 this.server.addWorker(this);
+                System.out.println("login " + this.acount.getUserName());
                 outputStream.write(msg.getBytes());
             } else {
                 String msg = "error login\n";
+                System.err.println(msg);
                 outputStream.write(msg.getBytes());
             }
         }
