@@ -5,6 +5,9 @@
  */
 package client;
 
+import static client.Command.JOIN;
+import client.view.LoginUI;
+import client.view.MainChatClientScreen;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -32,34 +35,42 @@ public class Client {
     private ObjectInputStream serverIn;
     private BufferedReader bufferedReader;
     private String userName;
+    private LoginUI clientView;
+    private MessageListener messageListener;
+    private UserStatusListener userStatusListener;
 
-    public Client(String serverName, int port) {
+    private Client(LoginUI clientView, String serverName, int port) {
         this.serverName = serverName;
         this.serverPort = port;
     }
 
-    public static void main(String[] args) throws IOException {
-        Client client = new Client("localhost", 8188);
-        if (client.connection() == false) {
-            System.err.println("Connection fail");
-        } else {
-            System.out.println("Connection successful");
-            if (client.login("guest", "guest")) {
-                System.out.println("Login successful");
-                client.setUserName("guest");
-                client.sendMessage("develop", "Hello world!");
-            }
+    private static Client client;
+
+    public static Client getClient(LoginUI clientView, String serverName, int port) {
+        if (client == null) {
+            client = new Client(clientView, serverName, port);
         }
+        return client;
+    }
+
+    public void setMessageListener(MessageListener listener) {
+        this.messageListener = listener;
+    }
+    public void setUserStatusListener(UserStatusListener listener){
+        this.userStatusListener = listener;
+    }
+    public String getUserName() {
+        return userName;
     }
 
     public void setUserName(String userName) {
         this.userName = userName;
     }
 
-    private boolean connection() {
+    public boolean connection() {
         try {
             this.socket = new Socket(serverName, serverPort);
-            this.serverOut = new ObjectOutputStream( socket.getOutputStream());
+            this.serverOut = new ObjectOutputStream(socket.getOutputStream());
             this.serverIn = new ObjectInputStream(socket.getInputStream());
             this.bufferedReader = new BufferedReader(new InputStreamReader(serverIn));
             return true;
@@ -69,41 +80,67 @@ public class Client {
         return false;
     }
 
-    private boolean login(String user, String pass) throws IOException {
-        String cmd = "login " + user + " " + pass + "\n";
-        serverOut.write(cmd.getBytes());
-        String response = bufferedReader.readLine();
-        System.out.println(response);
+    public boolean login(String user, String pass) throws IOException, ClassNotFoundException {
+        Message msg = new Message(Command.LOGIN, pass, user, "System");
+        serverOut.writeObject(msg);
+        Message response = (Message) serverIn.readObject();
+        System.out.println(response.getBody());
 
-        if ("ok login".equalsIgnoreCase(response)) {
-            startMessageReader();
+        if ("ok login\n".equalsIgnoreCase(response.getBody())) {
+            System.out.println("start read message");
+            client.setUserName(user);
             return true;
         } else {
             return false;
         }
     }
 
-    private void startMessageReader() {
+    public void startMessageReader() {
         Thread t = new Thread() {
             @Override
             public void run() {
-                readMessageLoop();
+                try {
+                    readMessageLoop();
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         };
         t.start();
     }
 
-    private void readMessageLoop() {
-        String line;
+    public void readMessageLoop() throws ClassNotFoundException {
+        Message message;
         try {
-            while ((line = bufferedReader.readLine()) != null) {
-                String[] tokens = line.split(" ", 3);
-                if (tokens != null && tokens.length > 0) {
-                    String cmd = tokens[0];
-                    if ("online".equalsIgnoreCase(cmd)) {
-                        handlerOnline(tokens);
-                    } else if ("send".equalsIgnoreCase(cmd)) {
-                        handlerMessage(tokens);
+            while (true) {
+                message = (Message) serverIn.readObject();
+                Command cmd = message.getCmd();
+                switch (cmd) {
+                    case SEND: {
+                        if (messageListener != null) {
+                            System.out.println("Read object .........");
+                            messageListener.onMessageListener(message);
+                        }
+                        break;
+                    }
+                    case RESPONSE: {
+                        if (messageListener != null) {
+                            messageListener.onMessageListener(message);
+                        }
+                        break;
+                    }
+                    case LOGON: {
+                        if (userStatusListener != null) {
+                            userStatusListener.onUserLogOn(message);
+                        }
+                        break;
+                    }
+                    case LOGOFF: {
+                        if (userStatusListener != null) {
+                            userStatusListener.onUserLogOff(message);
+                        }
+                        break;
+
                     }
                 }
             }
@@ -117,24 +154,22 @@ public class Client {
 
     }
 
-    private void handlerOnline(String[] tokens) {
+    public void handlerOnline(String[] tokens) {
         String user = tokens[1];
 
     }
 
-    private void sendMessage(String receiver, String msg) {
+    public void sendMessage(Command cmd, String receiver, String msg) {
         try {
-            Command cmd = Command.JOIN;
             Message message = new Message(cmd, msg, userName, receiver);
             System.out.println("Start send object message...");
             serverOut.writeObject(message);
-
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void handlerMessage(String[] tokens) {
+    public void handlerMessage(String[] tokens) {
         String user = tokens[1];
         String body = tokens[2];
         System.out.println(user + " : " + body + "\n");

@@ -9,10 +9,6 @@ package client;
  *
  * @author hoang
  */
-public enum Command {
-    JOIN,
-    MESSAGE,SEND,
-    LOGIN,REGISTER,
-    RESPONSE,QUIT,
-    LOGON,LOGOFF;
+public interface MessageListener {
+    public void onMessageListener(Message message);
 }

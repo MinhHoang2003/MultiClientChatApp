@@ -18,6 +18,7 @@ import java.util.logging.Logger;
  */
 public class Server extends Thread {
 
+    public static final String SYSTEM = "SYSTEM";
     private final int serverPort;
     private ArrayList<ServerWorker> workers;
     private AccountManager accountManager;

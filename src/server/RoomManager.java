@@ -5,7 +5,6 @@
  */
 package server;
 
-import com.sun.istack.internal.Nullable;
 import java.util.ArrayList;
 
 /**
@@ -41,7 +40,7 @@ public class RoomManager {
         this.rooms = rooms;
     }
 
-    public Room getRoomByName(String name, @Nullable String password) {
+    public Room getRoomByName(String name, String password) {
         Room room = getRoomByName(name);
         if (room.getStatus() == RoomStatus.PRIVATE && password == null) {
             return null;

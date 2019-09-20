@@ -5,6 +5,7 @@
  */
 package server;
 
+import client.Command;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +34,6 @@ public class Room {
         System.out.println("Online in room " + name + " " + workers.size());
     }
 
-    public void sendMessageInRoom(String msg) {
-        for (ServerWorker worker : this.workers) {
-            try {
-                worker.send(msg);
-            } catch (IOException ex) {
-                Logger.getLogger(Room.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
     public String getName() {
         return name;
     }
@@ -66,7 +57,7 @@ public class Room {
     public void sendMessageToRoomate(String userName, String msg) throws IOException {
         for (ServerWorker worker : workers) {
             if (!worker.getAcount().getUserName().equals(userName)) {
-                worker.send("send "+userName + " " + msg + "\n");
+                worker.send(Command.SEND, msg, userName);
             }
         }
     }
