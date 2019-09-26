@@ -3,12 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package client.controller;
 
 /**
  *
  * @author hoang
  */
-public enum AccountStatus {
-   ONLINE,OFFLINE
+public enum Command {
+    JOIN,
+    MESSAGE,SEND,RESPONSE,
+    LOGIN,REGISTER,QUIT,
+    LOGON,LOGOFF,
+    ROOM_MEMMBER,ROOM;
 }

@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package server.controller;
 
-import com.sun.istack.internal.Nullable;
+import server.model.RoomStatus;
+import server.model.Room;
 import java.util.ArrayList;
 
 /**
@@ -41,7 +42,7 @@ public class RoomManager {
         this.rooms = rooms;
     }
 
-    public Room getRoomByName(String name, @Nullable String password) {
+    public Room getRoomByName(String name, String password) {
         Room room = getRoomByName(name);
         if (room.getStatus() == RoomStatus.PRIVATE && password == null) {
             return null;

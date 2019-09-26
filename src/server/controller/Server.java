@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package server.controller;
 
+import server.view.ServerMain;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,29 +19,35 @@ import java.util.logging.Logger;
  */
 public class Server extends Thread {
 
+    public static final String SYSTEM = "SYSTEM";
     private final int serverPort;
-    private ArrayList<ServerWorker> workers;
     private AccountManager accountManager;
     private RoomAndAccountManager roomAndAccountManager;
     private RoomManager roomManager;
 
-    Server(int port) {
+    public Server(int port) {
         this.serverPort = port;
-        workers = new ArrayList<>();
         accountManager = AccountManager.getInstance();
         roomAndAccountManager = RoomAndAccountManager.getInstance();
         roomManager = RoomManager.getInstance();
     }
 
-    public ArrayList<ServerWorker> getWorkers() {
-        return workers;
+    public ArrayList<ServerWorker> getWorkers(String roomName) {
+        if (roomName.equals("General")) {
+            return roomManager.getRooms().get(0).getWorkers();
+        }
+        return roomManager.getRoomByName(roomName).getWorkers();
     }
 
-    public void addWorker(ServerWorker worker) {
-        this.workers.add(worker);
+    public void addWorker(ServerWorker worker, String roomName) {
+        if (roomName.equals("General")) {
+            roomManager.getRooms().get(0).addWorkerMember(worker);
+        }
+        else roomManager.getRoomByName(roomName).addWorkerMember(worker);
     }
 
-    public void removeWorker(ServerWorker worker) {
+    public void removeWorker(ServerWorker worker,String roomName) {
+        ArrayList<ServerWorker> workers = getWorkers(roomName);
         for (ServerWorker w : workers) {
             if (w.getAcount().getUserName().equals(worker.getAcount().getUserName())) {
                 workers.remove(w);

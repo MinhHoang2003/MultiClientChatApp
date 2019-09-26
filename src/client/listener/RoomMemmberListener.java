@@ -3,18 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package client.listener;
+
+import client.model.Message;
 
 /**
  *
  * @author hoang
  */
-public class ServerMain {
-
-    public static void main(String[] args) {
-        int port = 8188;
-        Server server = new Server(port);
-        server.start();
-    }
-
+public interface RoomMemmberListener {
+    void onRoomMemmberOnline(Message message);
 }

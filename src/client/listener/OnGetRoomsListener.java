@@ -3,12 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package client.listener;
+
+import client.model.RoomClientSide;
+import java.util.List;
 
 /**
  *
  * @author hoang
  */
-public enum RoomStatus {
-    PUBLIC,PRIVATE;
+public interface OnGetRoomsListener {
+    void onGetRooms(List<RoomClientSide> rooms);
 }
