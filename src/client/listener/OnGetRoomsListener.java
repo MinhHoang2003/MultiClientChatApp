@@ -3,12 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package client.listener;
+
+import client.model.RoomClientSide;
+import java.util.List;
 
 /**
  *
  * @author hoang
  */
-public interface MessageListener {
-    public void onMessageListener(Message message);
+public interface OnGetRoomsListener {
+    void onGetRooms(List<RoomClientSide> rooms);
 }

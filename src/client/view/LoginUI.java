@@ -5,12 +5,17 @@
  */
 package client.view;
 
-import client.Client;
-import client.Command;
+import client.controller.Client;
+import client.controller.Command;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -167,9 +172,26 @@ public class LoginUI extends javax.swing.JFrame {
                 String user = jTextUserName.getText();
                 String pass = jTextPassword.getText();
                 if (client.login(user, pass)) {
-                    main = new MainChatClientScreen(client,"General");
+                    main = new MainChatClientScreen(client, "General");
                     main.setVisible(true);
                     main.setTitle("Chat Room: " + client.getUserName());
+                    main.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosing(WindowEvent e) {
+                            JFrame frame = (JFrame) e.getSource();
+                            int result = JOptionPane.showConfirmDialog(
+                                    frame,
+                                    "Are you sure you want to exit the application?",
+                                    "Exit Application",
+                                    JOptionPane.YES_NO_OPTION);
+                            if (result == JOptionPane.YES_OPTION) {
+                                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                                client.sendMessage(Command.QUIT, "SYSTEM", "");
+                                LoginUI.this.setVisible(true);
+                            }
+                        }
+
+                    });
                     this.setVisible(false);
                 } else {
                     JOptionPane.showMessageDialog(this, "Username or password incorect");

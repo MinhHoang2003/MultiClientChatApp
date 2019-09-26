@@ -3,15 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package server.model;
 
 /**
  *
  * @author hoang
  */
-public interface UserStatusListener {
-
-    public void onUserLogOn(Message msg);
-
-    public void onUserLogOff(Message msg);
+public enum RoomStatus {
+    PUBLIC,PRIVATE;
 }

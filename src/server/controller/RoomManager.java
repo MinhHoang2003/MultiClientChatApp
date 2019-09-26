@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package server.controller;
 
+import server.model.RoomStatus;
+import server.model.Room;
 import java.util.ArrayList;
 
 /**

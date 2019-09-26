@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package client.controller;
 
 /**
  *
@@ -11,8 +11,8 @@ package client;
  */
 public enum Command {
     JOIN,
-    MESSAGE,SEND,
-    LOGIN,REGISTER,
-    RESPONSE,QUIT,
-    LOGON,LOGOFF;
+    MESSAGE,SEND,RESPONSE,
+    LOGIN,REGISTER,QUIT,
+    LOGON,LOGOFF,
+    ROOM_MEMMBER,ROOM;
 }

@@ -3,24 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package client.controller;
 
-import static client.Command.JOIN;
+import client.model.Message;
+import client.listener.MessageListener;
+import client.listener.OnGetRoomsListener;
+import client.listener.UserStatusListener;
 import client.view.LoginUI;
-import client.view.MainChatClientScreen;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.ssl.SSLSocket;
+import client.listener.RoomMemmberListener;
+import client.model.RoomClientSide;
+import java.util.List;
+import server.controller.Server;
 
 /**
  *
@@ -33,11 +32,13 @@ public class Client {
     private Socket socket;
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
-    private BufferedReader bufferedReader;
     private String userName;
-    private LoginUI clientView;
+
+    //message listener
     private MessageListener messageListener;
     private UserStatusListener userStatusListener;
+    private RoomMemmberListener roomMemmberCallback;
+    private OnGetRoomsListener onGetRoomsListener;
 
     private Client(LoginUI clientView, String serverName, int port) {
         this.serverName = serverName;
@@ -56,9 +57,15 @@ public class Client {
     public void setMessageListener(MessageListener listener) {
         this.messageListener = listener;
     }
-    public void setUserStatusListener(UserStatusListener listener){
+
+    public void setUserStatusListener(UserStatusListener listener) {
         this.userStatusListener = listener;
     }
+
+    public void setRoomMemmberCallback(RoomMemmberListener roomMemmberCallback) {
+        this.roomMemmberCallback = roomMemmberCallback;
+    }
+
     public String getUserName() {
         return userName;
     }
@@ -67,12 +74,15 @@ public class Client {
         this.userName = userName;
     }
 
+    public void setOnGetRoomsListener(OnGetRoomsListener onGetRoomsListener) {
+        this.onGetRoomsListener = onGetRoomsListener;
+    }
+    
     public boolean connection() {
         try {
             this.socket = new Socket(serverName, serverPort);
             this.serverOut = new ObjectOutputStream(socket.getOutputStream());
             this.serverIn = new ObjectInputStream(socket.getInputStream());
-            this.bufferedReader = new BufferedReader(new InputStreamReader(serverIn));
             return true;
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -86,7 +96,7 @@ public class Client {
         Message response = (Message) serverIn.readObject();
         System.out.println(response.getBody());
 
-        if ("ok login\n".equalsIgnoreCase(response.getBody())) {
+        if ("ok login\n".equalsIgnoreCase((String) response.getBody())) {
             System.out.println("start read message");
             client.setUserName(user);
             return true;
@@ -135,13 +145,23 @@ public class Client {
                         }
                         break;
                     }
+                    case ROOM_MEMMBER:
+                        if (roomMemmberCallback != null) {
+                            roomMemmberCallback.onRoomMemmberOnline(message);
+                        }
+                        break;
                     case LOGOFF: {
                         if (userStatusListener != null) {
                             userStatusListener.onUserLogOff(message);
                         }
                         break;
-
                     }
+                    case ROOM:
+                        if (onGetRoomsListener != null) {
+                            List<RoomClientSide> rooms = (List<RoomClientSide>) message.getBody();
+                            onGetRoomsListener.onGetRooms(rooms);
+                        }
+                        break;
                 }
             }
         } catch (IOException ex) {
@@ -151,11 +171,6 @@ public class Client {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex1);
             }
         }
-
-    }
-
-    public void handlerOnline(String[] tokens) {
-        String user = tokens[1];
 
     }
 
@@ -169,9 +184,13 @@ public class Client {
         }
     }
 
-    public void handlerMessage(String[] tokens) {
-        String user = tokens[1];
-        String body = tokens[2];
-        System.out.println(user + " : " + body + "\n");
+    public void getRoomsClientSide() {
+        try {
+            Message message = new Message(Command.ROOM, null, userName, Server.SYSTEM);
+            serverOut.writeObject(message);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 }

@@ -3,22 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package client.model;
 
+import client.controller.Command;
 import java.io.Serializable;
 
 /**
  *
  * @author hoang
  */
-public class Message implements Serializable {
+public class Message<T> implements Serializable {
 
     private Command cmd;
-    private String body;
+    private T body;
     private String userName;
     private String receiver;
 
-    public Message(Command cmd, String body, String userName, String receiver) {
+    public Message(Command cmd, T body, String userName, String receiver) {
         this.cmd = cmd;
         this.body = body;
         this.userName = userName;
@@ -49,11 +50,11 @@ public class Message implements Serializable {
         this.cmd = cmd;
     }
 
-    public String getBody() {
+    public T getBody() {
         return body;
     }
 
-    public void setBody(String body) {
+    public void setBody(T body) {
         this.body = body;
     }
 

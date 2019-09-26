@@ -3,21 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package server.controller;
 
-import client.Command;
-import static client.Command.RESPONSE;
-import static client.Command.SEND;
-import client.Message;
-import java.io.BufferedReader;
+import server.model.RoomStatus;
+import server.model.Account;
+import server.model.Room;
+import client.controller.Command;
+import static client.controller.Command.SEND;
+import client.model.Message;
+import client.model.RoomClientSide;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +36,6 @@ public class ServerWorker extends Thread {
     ServerWorker(Server server, Socket clientsocket) {
         this.clientSocket = clientsocket;
         this.server = server;
-
     }
 
     public Account getAcount() {
@@ -50,8 +49,7 @@ public class ServerWorker extends Thread {
         } catch (IOException ex) {
             try {
                 System.out.println("close connection");
-                this.clientSocket.close();
-                handlerOffline();
+                handlerOffline(new Message(Command.LOGOFF, "", acount.getUserName(), "System"));
             } catch (IOException ex1) {
                 Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex1);
             }
@@ -78,8 +76,9 @@ public class ServerWorker extends Thread {
                     break;
                 }
                 case QUIT: {
-                    send(Command.LOGOFF, "", this.acount.getUserName());
+                    handlerOffline(message);
                     clientSocket.close();
+                    break;
                 }
                 case REGISTER: {
                     handlerRegister(message);
@@ -87,6 +86,12 @@ public class ServerWorker extends Thread {
                 }
                 case SEND:
                     handlerSendMessage(message);
+                    break;
+                case ROOM_MEMMBER:
+                    handlerGetRoomMember(message);
+                    break;
+                case ROOM:
+                    handlerGetRooms(message);
                     break;
                 default:
                     String msg = "unknown " + cmd + "\n";
@@ -98,7 +103,7 @@ public class ServerWorker extends Thread {
 
     private void handlerLogin(ObjectOutputStream outputStream, Message message) throws IOException {
         String user = message.getUserName();
-        String password = message.getBody();
+        String password = (String) message.getBody();
         int index = server.getAccountManager().logingAccount(user, password);
         if (index >= 0) {
             //anounce change status and change status in account manager
@@ -106,7 +111,7 @@ public class ServerWorker extends Thread {
             String msg = "ok login\n";
             Message response = new Message(Command.RESPONSE, msg, "System", this.getAcount().getUserName());
             this.acount.setStatus(AccountStatus.ONLINE);
-            this.server.addWorker(this);
+            this.server.addWorker(this, "General");
             System.out.println("login " + this.acount.getUserName());
             outputStream.writeObject(response);
             handlerSendMessage(new Message(Command.LOGON, "", this.getAcount().getUserName(), "General"));
@@ -120,50 +125,55 @@ public class ServerWorker extends Thread {
 
     private void handlerRegister(Message message) throws IOException {
         String user = message.getUserName();
-        String password = message.getBody();
+        String password = (String) message.getBody();
         String msg = "";
         if (server.getAccountManager().registerAccount(user, password)) {
             msg = "register successfully with username " + user + "\n";
         } else {
             msg = "register fail your user name has been taken or password length invalid\n";
         }
-        send(Command.RESPONSE, msg, Server.SYSTEM);
+        response(Command.RESPONSE, msg);
     }
 
-    public void send(Command cmd, String msg, String from) throws IOException {
-        Message message = null;
-        if (cmd == RESPONSE) {
-            message = new Message(cmd, msg, from, this.acount.getUserName());
-        } else {
-            message = new Message(cmd, msg, from, "");
-        }
-
+    public void send(Message message) throws IOException {
         this.outputStream.writeObject(message);
     }
 
-    private void handlerOffline() throws IOException {
-        this.acount.setStatus(AccountStatus.OFFLINE);
-        server.removeWorker(this);
+    public void response(Command cmd, String message) throws IOException {
+        Message<String> response = new Message<>(cmd, message, Server.SYSTEM, this.getAcount().getUserName());
+        this.outputStream.writeObject(response);
+    }
+
+    private void handlerOffline(Message message) throws IOException {
+        Room room = server.getRoomManager().getRoomByName(message.getReceiver());
+        if (room != null) {
+            room.sendMessageToRoomate(Command.LOGOFF, message.getUserName(), "");
+        }
+        server.removeWorker(this, "General");
         String offlineStatus = this.acount.getUserName() + " has offlined\n";
         this.acount = null;
+        this.clientSocket.close();
         System.out.println(offlineStatus);
     }
 
     private void handlerJoinRoom(Message message) throws IOException {
+        String msg = null;
         if (this.acount == null) {
-            send(Command.RESPONSE, "You must register to join a room\n", Server.SYSTEM);
+            msg = "You must register to join a room\n";
+            response(Command.RESPONSE, msg);
             return;
         }
-        String[] tokens = message.getBody().split(" ", 2);
+        String line = (String) message.getBody();
+        String[] tokens = line.split(" ", 2);
         if (tokens.length == 1) {
             String roomName = tokens[0];
             Room room = server.getRoomManager().getRoomByName(roomName);
             if (room != null && room.getStatus() == RoomStatus.PUBLIC) {
                 room.addWorkerMember(this);
-                room.sendMessageToRoomate(this.acount.getUserName(), " has join the room\n");
-                send(RESPONSE, "you has join room " + roomName + "\n", Server.SYSTEM);
+                room.sendMessageToRoomate(Command.RESPONSE, this.acount.getUserName(), " has join the room\n");
+                msg = "you has join room " + roomName + "\n";
             } else {
-                send(RESPONSE, roomName + " is a private room, you must input the password\n", Server.SYSTEM);
+                msg = roomName + " is a private room, you must input the password\n";
             }
         } else if (tokens.length == 2) {
             String roomName = tokens[0];
@@ -171,30 +181,49 @@ public class ServerWorker extends Thread {
             Room room = server.getRoomManager().getRoomByName(roomName);
             if (room != null && room.getPassword().equals(pass)) {
                 room.addWorkerMember(this);
-                room.sendMessageToRoomate(this.acount.getUserName(), " has join the room\n");
-                send(RESPONSE, "you has join room " + roomName + "\n", Server.SYSTEM);
+                room.sendMessageToRoomate(Command.RESPONSE, this.acount.getUserName(), " has join the room\n");
+                msg = "you has join room " + roomName + "\n";
             } else {
-                send(RESPONSE, "Wrong password in to " + roomName + "\n", Server.SYSTEM);
+                msg = "Wrong password in to " + roomName + "\n";
             }
         }
+        response(Command.RESPONSE, msg);
     }
 
     private void handlerSendMessage(Message message) throws IOException {
         String roomName = message.getReceiver();
-        String msg = message.getBody();
-        if (roomName.equals("General")) {
-            for (ServerWorker worker : server.getWorkers()) {
-                if (!worker.getAcount().getUserName().equals(this.acount.getUserName())) {
-                    worker.send(message.getCmd(), msg, this.getAcount().getUserName());
-                    System.out.println(this.acount.getUserName() + " send General: " + msg + "\n");
-                }
+        String msg = (String) message.getBody();
+        Room room = server.getRoomManager().getRoomByName(roomName);
+        room.sendMessageToRoomate(message.getCmd(), this.getAcount().getUserName(), msg);
+    }
+
+    private void handlerGetRoomMember(Message message) throws IOException {
+        String roomName = message.getReceiver();
+        StringBuilder builder = new StringBuilder();
+        Room room = server.getRoomManager().getRoomByName(roomName);
+        String line;
+        if (room != null) {
+            for (ServerWorker worker : room.getWorkers()) {
+                line = worker.getAcount().getUserName() + " ";
+                System.out.println("-------------- get room member");
+                System.out.println(line);
+                builder.append(line);
             }
-        } else {
-            Room room = server.getRoomManager().getRoomByName(roomName);
-            if (room != null) {
-                room.sendMessageToRoomate(this.acount.getUserName(), msg);
-            }
+            response(Command.ROOM_MEMMBER, builder.toString());
         }
+    }
+
+    public void handlerGetRooms(Message message) throws IOException {
+        List<RoomClientSide> roomCS = new ArrayList<>();
+        List<Room> rooms = this.server.getRoomManager().getRooms();
+        for (Room room : rooms) {
+            roomCS.add(new RoomClientSide(room.getName(), room.getStatus()));
+        }
+
+        Message<List<RoomClientSide>> reponse = new Message<>(message.getCmd(),
+                roomCS, Server.SYSTEM,
+                this.getAcount().getUserName());
+        send(reponse);
     }
 
 }

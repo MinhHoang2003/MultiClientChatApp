@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server;
+package client.listener;
+
+import client.model.Message;
 
 /**
  *
  * @author hoang
  */
-public enum AccountStatus {
-   ONLINE,OFFLINE
+public interface MessageListener {
+    public void onMessageListener(Message message);
 }
