@@ -6,6 +6,7 @@
 package server.model;
 
 import client.controller.Command;
+import client.model.FileInfo;
 import client.model.Message;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,12 +24,14 @@ public class Room {
     private String name;
     private String password;
     private RoomStatus status;
+    private List<String> chatsHistory;
     private ArrayList<ServerWorker> workers;
 
     public Room(String name, RoomStatus roomStatus) {
         this.name = name;
         this.status = roomStatus;
         workers = new ArrayList<>();
+        chatsHistory = new ArrayList<>();
     }
 
     public void addWorkerMember(ServerWorker member) {
@@ -60,13 +63,33 @@ public class Room {
         return workers;
     }
 
-    public void sendMessageToRoomate(Command command, String userName, String msg) throws IOException {
+    public List<String> getChatsHistory() {
+        return chatsHistory;
+    }
+
+    public void setChatsHistory(List<String> chatsHistory) {
+        this.chatsHistory = chatsHistory;
+    }
+
+    public void sendMessageToRoomate(Command command, String from, String msg) throws IOException {
+        String messageContent = from + " :" + msg;
+        if (command == Command.SEND) {
+            this.chatsHistory.add(messageContent);
+        }
         for (ServerWorker worker : workers) {
-            if (!worker.getAcount().getUserName().equals(userName)) {
-                Message<String> message = new Message(command, msg, userName, "");
+            if (!worker.getAcount().getUserName().equals(from)) {
+                Message<String> message = new Message(command, msg, from, this.getName());
                 worker.send(message);
             }
         }
+    }
+
+    public void sendFileToRoom(FileInfo file, String from) throws IOException {
+        for (ServerWorker worker : workers) {
+            Message<FileInfo> message = new Message(Command.FILE, file, from, this.getName());
+            worker.send(message);
+        }
+
     }
 
 }

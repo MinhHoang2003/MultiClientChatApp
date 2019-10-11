@@ -38,6 +38,7 @@ public class RoomRenderer extends javax.swing.JPanel implements ListCellRenderer
         roomName = new javax.swing.JLabel();
         roomStatus = new javax.swing.JLabel();
 
+        roomName.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         roomName.setText("RoomName");
 
         roomStatus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/lock24px.png"))); // NOI18N
@@ -49,7 +50,7 @@ public class RoomRenderer extends javax.swing.JPanel implements ListCellRenderer
             .addGroup(layout.createSequentialGroup()
                 .addGap(19, 19, 19)
                 .addComponent(roomName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 82, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 69, Short.MAX_VALUE)
                 .addComponent(roomStatus)
                 .addGap(33, 33, 33))
         );
@@ -57,7 +58,7 @@ public class RoomRenderer extends javax.swing.JPanel implements ListCellRenderer
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(roomStatus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(roomName))
                 .addContainerGap())
@@ -78,7 +79,7 @@ public class RoomRenderer extends javax.swing.JPanel implements ListCellRenderer
             roomStatus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/unlock24px.png")));
         }
         roomName.setText(value.getName());
-        roomName.setForeground(Color.BLUE);
+        roomName.setForeground(Color.BLACK);
 
         // set Opaque to change background color of JLabel
         roomName.setOpaque(true);
