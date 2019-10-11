@@ -13,6 +13,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -30,6 +31,11 @@ public class LoginUI extends javax.swing.JFrame {
     public LoginUI() {
         initComponents();
         client = Client.getClient(this, "localhost", 8188);
+        if (client.connection()) {
+            Client.connectionStatus = true;
+        } else {
+            JOptionPane.showConfirmDialog(this, "Connection fail");
+        }
     }
 
     /**
@@ -41,108 +47,94 @@ public class LoginUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jTextPassword = new javax.swing.JPasswordField();
+        jLabel6 = new javax.swing.JLabel();
         jButtonLogin = new javax.swing.JButton();
         jButtonRegister = new javax.swing.JButton();
         jTextUserName = new javax.swing.JTextField();
-        jTextPassword = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabelWarning = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jButtonLogin.setText("Login");
-        jButtonLogin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonLoginActionPerformed(evt);
-            }
-        });
-
-        jButtonRegister.setText("Register");
-
-        jTextUserName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextUserNameActionPerformed(evt);
-            }
-        });
-
+        jTextPassword.setBackground(new java.awt.Color(51, 51, 51));
+        jTextPassword.setForeground(new java.awt.Color(255, 255, 255));
+        jTextPassword.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        jTextPassword.setBorder(null);
         jTextPassword.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 jTextPasswordKeyPressed(evt);
             }
         });
+        getContentPane().add(jTextPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 200, 190, 30));
 
+        jLabel6.setFont(new java.awt.Font("DialogInput", 2, 12)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel6.setText("If you don't hava account, click register ");
+        getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 80, 310, -1));
+
+        jButtonLogin.setBackground(new java.awt.Color(0, 153, 153));
+        jButtonLogin.setForeground(new java.awt.Color(255, 255, 255));
+        jButtonLogin.setText("Login");
+        jButtonLogin.setBorder(null);
+        jButtonLogin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLoginActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButtonLogin, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 310, 90, 30));
+
+        jButtonRegister.setBackground(new java.awt.Color(0, 153, 153));
+        jButtonRegister.setForeground(new java.awt.Color(255, 255, 255));
+        jButtonRegister.setText("Register");
+        jButtonRegister.setBorder(null);
+        jButtonRegister.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRegisterActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButtonRegister, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 310, 80, 30));
+
+        jTextUserName.setBackground(new java.awt.Color(51, 51, 51));
+        jTextUserName.setForeground(new java.awt.Color(255, 255, 255));
+        jTextUserName.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        jTextUserName.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        jTextUserName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextUserNameActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jTextUserName, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 190, 30));
+
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("UserName");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, -1, -1));
 
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Password");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, -1, -1));
 
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("CHAT ROOM");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 30, -1, 22));
 
+        jLabel4.setFont(new java.awt.Font("DialogInput", 1, 18)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel4.setText("Login to join our chat room");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 40, 330, 50));
+        getContentPane().add(jLabelWarning, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 270, -1, -1));
 
-        jLabelWarning.setText("text warning");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(131, 131, 131)
-                        .addComponent(jLabel3))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(30, 30, 30)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel4))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(65, 65, 65)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabelWarning)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(63, 63, 63)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jTextUserName)
-                                    .addComponent(jTextPassword, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(57, 57, 57)
-                        .addComponent(jButtonLogin)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButtonRegister)))
-                .addContainerGap(65, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4)
-                        .addGap(42, 42, 42)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jTextUserName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jTextPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                        .addComponent(jLabelWarning)
-                        .addGap(79, 79, 79))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButtonLogin)
-                            .addComponent(jButtonRegister))
-                        .addGap(30, 30, 30))))
-        );
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/rocket-2680282_1280.jpg"))); // NOI18N
+        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 730, 460));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -161,21 +153,32 @@ public class LoginUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jTextPasswordKeyPressed
 
-    private void login() {
-        if (client.connection()) {
-            jLabelWarning.setText("Connection successful!!!");
-        } else {
-            jLabelWarning.setText("Connection fail");
+    private void jButtonRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRegisterActionPerformed
+        try {
+            register();
+        } catch (IOException ex) {
+            Logger.getLogger(LoginUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(LoginUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (jTextUserName.getText() != null && jTextPassword.getText() != null) {
+    }//GEN-LAST:event_jButtonRegisterActionPerformed
+
+    private void login() {
+        if (Client.connectionStatus == false) {
+            return;
+        }
+        if (jTextUserName.getText() != null && jTextPassword.getPassword() != null) {
             try {
                 String user = jTextUserName.getText();
-                String pass = jTextPassword.getText();
+                String pass = new String(jTextPassword.getPassword());
                 if (client.login(user, pass)) {
-                    main = new MainChatClientScreen(client, "General");
-                    main.setVisible(true);
-                    main.setTitle("Chat Room: " + client.getUserName());
-                    main.addWindowListener(new WindowAdapter() {
+//                    main = new MainChatClientScreen(client, "General");
+//                    main.setVisible(true);
+//                    main.setTitle("Chat Room: " + client.getUserName());
+                    RoomPicker roomPicker = new RoomPicker(client);
+                    roomPicker.setVisible(true);
+                    roomPicker.setTitle("RoomPicker");
+                    roomPicker.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosing(WindowEvent e) {
                             JFrame frame = (JFrame) e.getSource();
@@ -252,8 +255,23 @@ public class LoginUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabelWarning;
-    private javax.swing.JTextField jTextPassword;
+    private javax.swing.JPasswordField jTextPassword;
     private javax.swing.JTextField jTextUserName;
     // End of variables declaration//GEN-END:variables
+
+    private void register() throws IOException, ClassNotFoundException {
+        if (Client.connectionStatus == false) {
+            return;
+        }
+        System.out.println("Start register");
+        String user = jTextUserName.getText();
+        String pass = new String(jTextPassword.getPassword());
+        if (!user.isEmpty() && !pass.isEmpty()) {
+            System.out.println("register");
+            client.register(user, pass);
+        }
+    }
 }

@@ -6,7 +6,10 @@
 package server.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -15,18 +18,11 @@ import java.util.List;
 public class RoomAndAccountManager {
 
     private static RoomAndAccountManager roomAndAccountManager;
-    private List<String> roomIds;
-    private List<String> userNameMembers;
 
-    public RoomAndAccountManager() {
-        roomIds = new ArrayList<>();
-        roomIds.add("General");
-        userNameMembers = new ArrayList<>();
-    }
+    private Map<String, String> roomAndAccount;
 
-    public RoomAndAccountManager(List<String> roomIds, List<String> userNameMembers) {
-        this.roomIds = roomIds;
-        this.userNameMembers = userNameMembers;
+    private RoomAndAccountManager() {
+        roomAndAccount = new HashMap<>();
     }
 
     public static RoomAndAccountManager getInstance() {
@@ -36,29 +32,28 @@ public class RoomAndAccountManager {
         return roomAndAccountManager;
     }
 
-    public List<String> getRoomIds() {
-        return roomIds;
+    public void addRelationship(String user, String roomName) {
+        roomAndAccount.put(user, roomName);
     }
 
-    public void setRoomIds(List<String> roomIds) {
-        this.roomIds = roomIds;
-    }
-
-    public List<String> getUserNameMembers() {
-        return userNameMembers;
-    }
-
-    public void setUserNameMembers(List<String> userNameMembers) {
-        this.userNameMembers = userNameMembers;
-    }
-
-    public boolean checkMember(String member, String room) {
-        for (String roomName : roomIds) {
-            if (roomName.equals(room)) {
-                return true;
+    public void removeRelationship(String user, String room) {
+        Iterator it = roomAndAccount.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> item = (Map.Entry<String, String>) it.next();
+            //it.remove() will delete the item from the map
+            if (item.getValue().equals(room) && item.getKey().equals(user)) {
+                it.remove();
             }
         }
-        return false;
     }
 
+    public List<String> getRoomsByUser(String user) {
+        List<String> rooms = new ArrayList<>();
+        roomAndAccount.forEach((userName, roomName) -> {
+            if (user.equals(userName)) {
+                rooms.add(roomName);
+            }
+        });
+        return rooms;
+    }
 }

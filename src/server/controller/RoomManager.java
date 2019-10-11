@@ -8,6 +8,7 @@ package server.controller;
 import server.model.RoomStatus;
 import server.model.Room;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -30,6 +31,10 @@ public class RoomManager {
         rooms.add(new Room("General", RoomStatus.PUBLIC));
         rooms.add(new Room("develop", RoomStatus.PUBLIC));
         Room room = new Room("test", RoomStatus.PRIVATE);
+        List<String> historys = new ArrayList<>();
+        historys.add("nam : hello");
+        room.setChatsHistory(historys);
+
         room.setPassword("hello");
         rooms.add(room);
     }

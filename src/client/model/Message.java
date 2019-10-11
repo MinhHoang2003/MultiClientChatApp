@@ -16,22 +16,22 @@ public class Message<T> implements Serializable {
 
     private Command cmd;
     private T body;
-    private String userName;
+    private String from;
     private String receiver;
 
     public Message(Command cmd, T body, String userName, String receiver) {
         this.cmd = cmd;
         this.body = body;
-        this.userName = userName;
+        this.from = userName;
         this.receiver = receiver;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getFrom() {
+        return from;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setFrom(String from) {
+        this.from = from;
     }
 
     public String getReceiver() {
