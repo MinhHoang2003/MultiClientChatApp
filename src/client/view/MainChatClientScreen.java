@@ -7,10 +7,12 @@ package client.view;
 
 import client.controller.Client;
 import client.controller.Command;
+import client.controller.IconManager;
 import client.model.Message;
 import client.listener.MessageListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
+import client.listener.OnIconClickListener;
 import client.listener.OnLeaveRoomListener;
 import client.listener.OnShowRoomPickerListener;
 import client.listener.UserStatusListener;
@@ -27,16 +29,22 @@ import javax.swing.text.StyleConstants;
 import client.listener.RoomMemmberListener;
 import client.model.FileInfo;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Iterator;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.text.Style;
+import javax.swing.text.StyledDocument;
 
 /**
  *
  * @author hoang
  */
 public class MainChatClientScreen extends javax.swing.JFrame implements
-        MessageListener, UserStatusListener, RoomMemmberListener, OnLeaveRoomListener, OnGetHistoryListener, OnGetFileListener {
+        MessageListener, UserStatusListener, RoomMemmberListener, OnLeaveRoomListener,
+        OnGetHistoryListener, OnGetFileListener, OnIconClickListener {
 
     private Client client;
     private String roomName;
@@ -44,12 +52,15 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private List<String> usersInRoom;
     private OnShowRoomPickerListener onShowRoomPickerListener;
     private List<FileInfo> files;
+    private IconManager iconManager;
+    private IconPicker iconPicker;
 
     public MainChatClientScreen(Client client, String roomName) {
         initComponents();
         this.client = client;
         this.roomName = roomName;
         files = new ArrayList<>();
+        iconManager = new IconManager();
         jLabelRoomName.setText(roomName);
         listUserInRoom = new DefaultListModel();
         usersInRoom = new ArrayList<>();
@@ -63,6 +74,12 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         client.addOnGetHistoryListener(this);
         client.addOnGetFileListener(this);
         client.getChatHistory(roomName);
+        //icon 
+        iconPicker = new IconPicker();
+        iconPicker.setOnIconClickListener(this);
+        iconPicker.setTitle("Icon picker");
+        iconPicker.setVisible(false);
+        iconPicker.setAlwaysOnTop(true);
     }
 
     @SuppressWarnings("unchecked")
@@ -70,6 +87,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private void initComponents() {
 
         jMenu1 = new javax.swing.JMenu();
+        jLabel3 = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -95,6 +113,14 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/icon/wink.png"))); // NOI18N
+        jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel3MouseClicked(evt);
+            }
+        });
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 320, -1, -1));
         getContentPane().add(jComboBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 320, 110, 30));
 
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
@@ -164,7 +190,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(151, 10, 430, 280));
 
         background.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/room_backroudn_dark.jpg"))); // NOI18N
-        getContentPane().add(background, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, -20, 610, 430));
+        getContentPane().add(background, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, -10, 610, 430));
 
         jMenuBar1.setBackground(new java.awt.Color(204, 204, 204));
 
@@ -215,9 +241,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private void jTextChatKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextChatKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             String msg = jTextChat.getText();
-            client.sendMessage(Command.SEND, roomName, msg);
-            jTextChat.setText("");
-            inputMessage("You: " + msg, Color.BLACK);
+            if (!msg.isEmpty()) {
+                client.sendMessage(Command.SEND, roomName, msg);
+                jTextChat.setText("");
+                inputMessage("You: " + msg + "\n", Color.BLACK);
+            }
         }
     }//GEN-LAST:event_jTextChatKeyPressed
 
@@ -276,6 +304,10 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
+    private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
+        this.iconPicker.setVisible(true);
+    }//GEN-LAST:event_jLabel3MouseClicked
+
     public void setOnShowRoomPickerListener(OnShowRoomPickerListener onShowRoomPickerListener) {
         this.onShowRoomPickerListener = onShowRoomPickerListener;
     }
@@ -315,6 +347,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
                             sas
                     );
                     break;
+                case ICON:
+                    String name = (String) message.getBody();
+                    URL iconPath = iconManager.getIconPath(name);
+                    inputIcon(iconPath, message.getFrom(), Color.blue);
+                    break;
                 default:
                     break;
             }
@@ -328,7 +365,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         try {
             jTextPane1.getDocument().insertString(
                     jTextPane1.getDocument().getLength(),
-                    msg + "\n",
+                    msg,
                     sas
             );
         } catch (BadLocationException ble) {
@@ -402,6 +439,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
@@ -427,7 +465,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         System.out.println("OnLeaveRoom");
         String user = message.getFrom();
         if (receiver.equals(roomName)) {
-            String status = user + " leave the chat room";
+            String status = user + " leave the chat room\n";
             System.out.println(status);
             Iterator<String> iterator = usersInRoom.iterator();
             while (iterator.hasNext()) {
@@ -442,31 +480,56 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
 
     @Override
-    public void onGetMessageHistorys(List<String> historys) {
-        inputMessage("Chat history: ", Color.BLUE);
+    public void onGetMessageHistorys(List<String> historys,String roomName) {
+        if(!roomName.equals(this.roomName)) return;
+        inputMessage("Chat history: \n", Color.BLUE);
         for (String item : historys) {
             if (item.startsWith(client.getUserName())) {
                 String[] chatContent = item.split(" ", 2);
-                item = "You " + chatContent[1];
+                item = "You " + chatContent[1] + " \n";
                 inputMessage(item, Color.BLUE);
             } else {
-                inputMessage(item, Color.BLUE);
+                inputMessage(item + " \n", Color.BLUE);
             }
         }
-        inputMessage("--------------------------------------------", Color.BLUE);
+        inputMessage("--------------------------------------------\n", Color.BLUE);
     }
 
     @Override
-    public void onGetFile(FileInfo file,String from) {
-        System.out.println("Got a file "+ file.getFilename());
-        if(from.equals(client.getUserName())){
-            inputMessage("Send file successfully!!!", Color.red);
-        }else {
-            inputMessage("You got a file : " + file.getFilename() + " from "+ from, Color.red);
+    public void onGetFile(FileInfo file, String from) {
+        System.out.println("Got a file " + file.getFilename());
+        if (from.equals(client.getUserName())) {
+            inputMessage("Send file successfully!!! \n", Color.red);
+        } else {
+            inputMessage("You got a file : " + file.getFilename() + " from " + from + "\n", Color.red);
         }
         files.add(file);
         jComboBox1.addItem(file.getFilename());
         jComboBox1.setSelectedItem(file.getFilename());
+    }
+
+    @Override
+    public void onIconClicked(String name) {
+        URL iconPath = this.iconManager.getIconPath(name);
+        System.out.println(iconPath.toString());
+        client.sendMessage(Command.ICON, roomName, name);
+        inputIcon(iconPath, "You", Color.black);
+    }
+
+    public void inputIcon(URL iconPath, String from, Color color) {
+        if (iconPath != null) {
+            try {
+                StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
+
+                Style style = doc.addStyle("StyleName", null);
+                inputMessage(from + " : ", Color.black);
+                StyleConstants.setIcon(style, new ImageIcon(iconPath));
+                doc.insertString(doc.getLength(), "ignored text", style);
+                inputMessage("\n", color);
+            } catch (BadLocationException ex) {
+                Logger.getLogger(MainChatClientScreen.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
 }

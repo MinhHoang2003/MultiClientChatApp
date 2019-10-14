@@ -12,5 +12,5 @@ import java.util.List;
  * @author hoang
  */
 public interface OnGetHistoryListener {
-    void onGetMessageHistorys(List<String> historys);
+    void onGetMessageHistorys(List<String> historys,String roomName);
 }

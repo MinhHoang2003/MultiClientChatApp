@@ -271,7 +271,9 @@ public class LoginUI extends javax.swing.JFrame {
         String pass = new String(jTextPassword.getPassword());
         if (!user.isEmpty() && !pass.isEmpty()) {
             System.out.println("register");
-            client.register(user, pass);
+           if( client.register(user, pass)){
+               JOptionPane.showMessageDialog(this, "Register successful!!");
+           }else JOptionPane.showMessageDialog(this, "Register fail!!");
         }
     }
 }

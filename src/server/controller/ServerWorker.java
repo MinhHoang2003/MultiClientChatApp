@@ -103,6 +103,9 @@ public class ServerWorker extends Thread {
                 case FILE:
                     handlerSendFile(message);
                     break;
+                case ICON : 
+                    handlerSendMessage(message);
+                    break;
                 default:
                     String msg = "unknown " + cmd + "\n";
                     System.out.println(msg);
