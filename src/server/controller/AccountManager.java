@@ -7,6 +7,7 @@ package server.controller;
 
 import server.model.Account;
 import java.util.ArrayList;
+import server.dao.ImplAccountDAO;
 
 /**
  *
@@ -16,8 +17,10 @@ public class AccountManager {
 
     public static AccountManager accountManager;
     private ArrayList<Account> accounts;
+    private ImplAccountDAO implAccountDAO;
 
     private AccountManager() {
+        implAccountDAO = new ImplAccountDAO();
         this.accounts = accounts;
         accounts = new ArrayList<>();
         accounts.add(new Account("guest", "guest"));
@@ -33,16 +36,23 @@ public class AccountManager {
     }
 
     public int logingAccount(String userName, String password) {
-        for (Account account : accounts) {
-            if (account.isAccount(userName, password)) {
-                return accounts.indexOf(account);
-            }
+        int check = 1;
+        boolean c = implAccountDAO.checkLogin(userName, password);
+        if (c == true) {
+            return check;
+        } else {
+            return -1;
         }
-        return -1;
+//        for (Account account : accounts) {
+//            if (account.isAccount(userName, password)) {
+//                return accounts.indexOf(account);
+//            }
+//        }
+
     }
 
-    public Account getAccount(int index) {
-        return accounts.get(index);
+    public Account getAccount(String username, String password) {
+        return implAccountDAO.getAccount(username, password);
     }
 
     private boolean isValidAccount(String user, String password) {

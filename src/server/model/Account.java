@@ -23,6 +23,9 @@ public class Account {
         this.status = AccountStatus.OFFLINE;
     }
 
+    public Account() {
+    }
+
     public AccountStatus isStatus() {
         return status;
     }

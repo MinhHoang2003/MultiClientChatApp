@@ -117,10 +117,10 @@ public class ServerWorker extends Thread {
     private void handlerLogin(ObjectOutputStream outputStream, Message message) throws IOException {
         String user = message.getFrom();
         String password = (String) message.getBody();
-        int index = server.getAccountManager().logingAccount(user, password);
+        int index = server.getAccountManager().logingAccount(user, password); // index gio auto =1 neu login success
         if (index >= 0) {
             //anounce change status and change status in account manager
-            this.acount = server.getAccountManager().getAccount(index);
+            this.acount = server.getAccountManager().getAccount(user, password);
             String msg = "ok login\n";
             Message response = new Message(Command.RESPONSE, msg, "System", this.getAcount().getUserName());
             this.acount.setStatus(AccountStatus.ONLINE);
