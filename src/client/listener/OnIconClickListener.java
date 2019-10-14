@@ -3,15 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client.controller;
+package client.listener;
 
 /**
  *
  * @author hoang
  */
-public enum Command {
-    SEND, RESPONSE,
-    LOGIN, REGISTER, QUIT,
-    LOGON, LOGOFF,
-    JOIN, ROOM_MEMMBER, ROOM, LEAVE, HISTORY, FILE, ICON;
+public interface OnIconClickListener {
+   void onIconClicked(String name);
 }

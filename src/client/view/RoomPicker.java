@@ -69,7 +69,9 @@ public class RoomPicker extends javax.swing.JFrame implements
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {//This line prevents double events
                     rcs = jListRooms.getSelectedValue();
-                    if(rcs == null ) return;
+                    if (rcs == null) {
+                        return;
+                    }
                     if (rcs.getRoomStatus() == RoomStatus.PRIVATE) {
                         showInputPasswordBox();
                     } else {
@@ -158,9 +160,11 @@ public class RoomPicker extends javax.swing.JFrame implements
             @Override
             public void windowClosed(WindowEvent e) {
                 chatViews.remove(newRoom);
-                System.out.println("Frame: " + chatViews.size());
+                System.out.println("ChatViews size: " + chatViews.size());
+                System.out.println("Frame: " + newRoom.getTitle());
                 if (chatViews.isEmpty()) {
                     RoomPicker.this.setVisible(true);
+                    RoomPicker.this.jListRooms.clearSelection();
                 }
             }
         });
@@ -175,5 +179,7 @@ public class RoomPicker extends javax.swing.JFrame implements
     @Override
     public void onShowRoomPikcer() {
         RoomPicker.this.setVisible(true);
+        RoomPicker.this.jListRooms.clearSelection();
     }
+    
 }

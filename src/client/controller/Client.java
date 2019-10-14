@@ -105,7 +105,8 @@ public class Client {
     public void addOnLeaveRoomListener(OnLeaveRoomListener listener) {
         this.onLeaveRoomListeners.add(listener);
     }
-    public void addOnGetFileListener(OnGetFileListener listener){
+
+    public void addOnGetFileListener(OnGetFileListener listener) {
         this.onGetFileListeners.add(listener);
     }
 
@@ -211,15 +212,22 @@ public class Client {
                     case HISTORY: {
                         List<String> historys = (List<String>) message.getBody();
                         for (OnGetHistoryListener listener : onGetHistoryListeners) {
-                            listener.onGetMessageHistorys(historys);
+                            listener.onGetMessageHistorys(historys,message.getFrom());
                         }
                         break;
                     }
                     case FILE: {
                         FileInfo file = (FileInfo) message.getBody();
                         System.out.println("file listener");
-                        for(OnGetFileListener listener : onGetFileListeners){
-                            listener.onGetFile(file,message.getFrom());
+                        for (OnGetFileListener listener : onGetFileListeners) {
+                            listener.onGetFile(file, message.getFrom());
+                        }
+                        break;
+
+                    }
+                    case ICON: {
+                        for (MessageListener listener : this.messageListeners) {
+                            listener.onMessageListener(message);
                         }
                         break;
                     }
@@ -338,11 +346,11 @@ public class Client {
         }
         return true;
     }
-    
-    public void sendFile(String source,String roomName){
+
+    public void sendFile(String source, String roomName) {
         try {
             FileInfo file = getFileInfo(source);
-            Message<FileInfo> message = new Message<>(Command.FILE,file,userName,roomName);
+            Message<FileInfo> message = new Message<>(Command.FILE, file, userName, roomName);
             serverOut.writeObject(message);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
