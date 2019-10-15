@@ -15,7 +15,7 @@ import server.model.Account;
  *
  * @author hoain
  */
-public class ImplAccountDAO implements AccountDAO<Account>{
+public class ImplAccountDAO implements AccountDAO<Account> {
 
     @Override
     public boolean checkLogin(String username, String password) {
@@ -27,7 +27,7 @@ public class ImplAccountDAO implements AccountDAO<Account>{
         }
         try {
             con = ConnectionDB.openConnection();
-            callSt = con.prepareCall("{call getAccount(?,?)}"); 
+            callSt = con.prepareCall("{call getAccount(?,?)}");
             callSt.setString(1, username);
             callSt.setString(2, password);
             ResultSet rs = callSt.executeQuery();
@@ -53,7 +53,7 @@ public class ImplAccountDAO implements AccountDAO<Account>{
         }
         try {
             con = ConnectionDB.openConnection();
-            callSt = con.prepareCall("{call getAccount(?,?)}"); 
+            callSt = con.prepareCall("{call getAccount(?,?)}");
             callSt.setString(1, username);
             callSt.setString(2, password);
             ResultSet rs = callSt.executeQuery();
@@ -70,7 +70,52 @@ public class ImplAccountDAO implements AccountDAO<Account>{
         return a;
     }
 
-    
+    @Override
+    public boolean registerAccount(String username, String password) {
+        boolean c = true;
+        Connection con = null;
+        CallableStatement callSt = null;
+        if (username.equals("") || password.equals("")) {
+            return false;
+        }
+        try {
+            con = ConnectionDB.openConnection();
+            callSt = con.prepareCall("{call insertAccount(?,?)}");
+            callSt.setString(1, username);
+            callSt.setString(2, password);
+            callSt.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e);
+            c = false;
+        } finally {
+            ConnectionDB.closeConnection(con, callSt);
+        }
+        return c;
+    }
 
-    
+    @Override
+    public boolean checkExistAccount(String username) {
+        boolean c = false;
+        Connection con = null;
+        CallableStatement callSt = null;
+        if (username.equals("")) {
+            return c;
+        }
+        try {
+            con = ConnectionDB.openConnection();
+            callSt = con.prepareCall("{call checkExitAccount(?)}");
+            callSt.setString(1, username);          
+            ResultSet rs = callSt.executeQuery();
+            if (rs.next()) {
+                c = true;
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            c = false;
+        } finally {
+            ConnectionDB.closeConnection(con, callSt);
+        }
+        return c;
+    }
+
 }

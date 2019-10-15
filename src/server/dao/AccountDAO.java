@@ -14,6 +14,9 @@ import java.util.List;
 public interface AccountDAO<T> {
     boolean checkLogin(String username, String password);
     T getAccount(String username, String password);
+    boolean registerAccount(String username, String password);
+    boolean checkExistAccount(String username);
+    
 //    boolean insert(T data);
 //    boolean update(T data);
 //    boolean delete(int id);

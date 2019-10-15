@@ -55,18 +55,29 @@ public class AccountManager {
         return implAccountDAO.getAccount(username, password);
     }
 
-    private boolean isValidAccount(String user, String password) {
-        for (Account account : accounts) {
-            if (account.getUserName().equals(user) || password.length() < 1) {
-                return false;
-            }
+    private boolean isValidAccount(String user, String password) { // check exist account
+        // neu chua co thi return true
+//        for (Account account : accounts) {
+//            if (account.getUserName().equals(user) || password.length() < 1) {
+//                return false;
+//            }
+//        }
+        if (user.length() < 1 || password.length() < 1) {
+            return false;
+        }
+        boolean c = implAccountDAO.checkExistAccount(user);
+        if (c) {
+            return false;
         }
         return true;
     }
 
     public boolean registerAccount(String userName, String password) {
         if (isValidAccount(userName, password)) {
-            accounts.add(new Account(userName, password));
+//            accounts.add(new Account(userName, password));
+            //add new account
+            boolean c = implAccountDAO.registerAccount(userName, password);
+            if(!c) return false;
             System.out.println("----------> add username " + userName + "\n");
             return true;
         }
