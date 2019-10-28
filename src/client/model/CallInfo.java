@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client.controller;
+package client.model;
+
+import java.io.Serializable;
 
 /**
  *
- * @author hoang
+ * @author DoQuan_User
  */
-public enum Command {
-    SEND, RESPONSE,
-    LOGIN, REGISTER, QUIT,
-    LOGON, LOGOFF,
-    JOIN, ROOM_MEMMBER, ROOM, LEAVE, HISTORY,FILE,
-    VOICECALL;
+public class CallInfo implements Serializable {
+    private static final long serialVersionUID = 2L;
+    
+    
 }

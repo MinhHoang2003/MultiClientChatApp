@@ -3,12 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/controller/Client.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/controller/Command.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/server/controller/ServerWorker.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/server/model/Room.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/listener/OnGetFileListener.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/view/MainChatClientScreen.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/server/controller/ServerWorker.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/server/controller/Server.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/controller/Client.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/view/MainChatClientScreen.java</file>
         </group>
     </open-files>
 </project-private>

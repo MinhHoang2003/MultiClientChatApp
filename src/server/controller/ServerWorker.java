@@ -5,22 +5,32 @@
  */
 package server.controller;
 
+import client.controller.Client;
 import server.model.RoomStatus;
 import server.model.Account;
 import server.model.Room;
 import client.controller.Command;
 import static client.controller.Command.SEND;
+import client.listener.OnSendAudioListener;
+import client.listener.UserJoinVoiceCall;
 import client.model.FileInfo;
 import client.model.Message;
 import client.model.RoomClientSide;
+import client.view.MainVoiceCall;
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.TargetDataLine;
 
 /**
  *
@@ -33,7 +43,8 @@ public class ServerWorker extends Thread {
     private Account acount = null;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
-
+    private OnSendAudioListener listener;
+    
     ServerWorker(Server server, Socket clientsocket) {
         this.clientSocket = clientsocket;
         this.server = server;
@@ -64,51 +75,63 @@ public class ServerWorker extends Thread {
         this.inputStream = new ObjectInputStream(clientSocket.getInputStream());
 
         Message message = null;
-        while ((message = (Message) inputStream.readObject()) != null) {
+        Message messageCall = null;
+        while (true) {
+
             System.out.println("Get message ...");
-            Command cmd = message.getCmd();
-            switch (cmd) {
-                case LOGIN: {
-                    handlerLogin(outputStream, message);
-                    break;
+            
+            message = (Message) inputStream.readObject();
+            if (message != null) {
+                Command cmd = message.getCmd();
+
+                switch (cmd) {
+                    case LOGIN: {
+                        handlerLogin(outputStream, message);
+                        break;
+                    }
+                    case JOIN: {
+                        handlerJoinRoom(message);
+                        break;
+                    }
+                    case QUIT: {
+                        handlerOffline(message);
+                        clientSocket.close();
+                        break;
+                    }
+                    case REGISTER: {
+                        handlerRegister(message);
+                        break;
+                    }
+                    case SEND:
+                        handlerSendMessage(message);
+                        break;
+                    case ROOM_MEMMBER:
+                        handlerGetRoomMember(message);
+                        break;
+                    case ROOM:
+                        handlerGetRooms(message);
+                        break;
+                    case LEAVE:
+                        handlerLeaveRoom(message);
+                        break;
+                    case HISTORY:
+                        handlerGetRoomHistory(message);
+                        break;
+                    case FILE:
+                        handlerSendFile(message);
+                        break;
+                    case VOICECALL:
+                        startRinging(message);
+                        messageCall = message;
+                        message = null;
+                        listener.startUDPThread(messageCall);
+                        break;
+                    default:
+                        String msg = "unknown " + cmd + "\n";
+                        System.out.println(msg);
                 }
-                case JOIN: {
-                    handlerJoinRoom(message);
-                    break;
-                }
-                case QUIT: {
-                    handlerOffline(message);
-                    clientSocket.close();
-                    break;
-                }
-                case REGISTER: {
-                    handlerRegister(message);
-                    break;
-                }
-                case SEND:
-                    handlerSendMessage(message);
-                    break;
-                case ROOM_MEMMBER:
-                    handlerGetRoomMember(message);
-                    break;
-                case ROOM:
-                    handlerGetRooms(message);
-                    break;
-                case LEAVE:
-                    handlerLeaveRoom(message);
-                    break;
-                case HISTORY:
-                    handlerGetRoomHistory(message);
-                    break;
-                case FILE:
-                    handlerSendFile(message);
-                    break;
-                default:
-                    String msg = "unknown " + cmd + "\n";
-                    System.out.println(msg);
             }
         }
-        clientSocket.close();
     }
 
     private void handlerLogin(ObjectOutputStream outputStream, Message message) throws IOException {
@@ -148,6 +171,10 @@ public class ServerWorker extends Thread {
 
     public void send(Message message) throws IOException {
         this.outputStream.writeObject(message);
+    }
+
+    public void sendDatagram(DatagramPacket dp) throws IOException {
+        new DatagramSocket().send(dp);
     }
 
     public void response(Command cmd, String message) throws IOException {
@@ -261,9 +288,9 @@ public class ServerWorker extends Thread {
         String userName = message.getReceiver();
         Room room = server.getRoomManager().getRoomByName(roomName);
         if (room != null) {
-             List<String> historys = room.getChatsHistory();
-             Message<List<String>> reponse = new Message<>(Command.HISTORY,historys,roomName,userName);
-             send(reponse);
+            List<String> historys = room.getChatsHistory();
+            Message<List<String>> reponse = new Message<>(Command.HISTORY, historys, roomName, userName);
+            send(reponse);
         }
     }
 
@@ -272,9 +299,22 @@ public class ServerWorker extends Thread {
         String roomName = message.getReceiver();
         String user = message.getFrom();
         Room room = server.getRoomManager().getRoomByName(roomName);
-        if(room != null){
-            room.sendFileToRoom((FileInfo) message.getBody(),message.getFrom());
+        if (room != null) {
+            room.sendFileToRoom((FileInfo) message.getBody(), message.getFrom());
         }
     }
 
+    private void startRinging(Message message) throws IOException {
+        String roomName = message.getReceiver();
+        String user = message.getFrom();
+        Room room = server.getRoomManager().getRoomByName(roomName);
+        if (room != null) {
+            room.setStatusRinging(user);
+        }
+    }
+
+    public void setListener(OnSendAudioListener listener) {
+        this.listener = listener;
+    }
+    
 }

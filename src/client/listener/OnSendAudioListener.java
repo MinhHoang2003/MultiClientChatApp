@@ -3,16 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client.controller;
+package client.listener;
+
+import client.model.Message;
 
 /**
  *
- * @author hoang
+ * @author dohongquan
  */
-public enum Command {
-    SEND, RESPONSE,
-    LOGIN, REGISTER, QUIT,
-    LOGON, LOGOFF,
-    JOIN, ROOM_MEMMBER, ROOM, LEAVE, HISTORY,FILE,
-    VOICECALL;
+public interface OnSendAudioListener {
+    public void startUDPThread(Message message);
 }

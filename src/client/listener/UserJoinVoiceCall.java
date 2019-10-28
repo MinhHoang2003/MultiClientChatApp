@@ -3,16 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client.controller;
+package client.listener;
 
 /**
  *
- * @author hoang
+ * @author DoQuan_User
  */
-public enum Command {
-    SEND, RESPONSE,
-    LOGIN, REGISTER, QUIT,
-    LOGON, LOGOFF,
-    JOIN, ROOM_MEMMBER, ROOM, LEAVE, HISTORY,FILE,
-    VOICECALL;
+public interface UserJoinVoiceCall {
+    public void setUserJoinVoiceCall(String user);
 }
