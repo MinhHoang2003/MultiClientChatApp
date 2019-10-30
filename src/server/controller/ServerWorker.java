@@ -217,6 +217,7 @@ public class ServerWorker extends Thread {
     }
 
     private void handlerGetRoomMember(Message message) throws IOException {
+        // get room name => get all client => send to server
         String roomName = message.getReceiver();
         StringBuilder builder = new StringBuilder();
         Room room = server.getRoomManager().getRoomByName(roomName);

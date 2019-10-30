@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import server.controller.ServerWorker;
+import server.dao.ImplRoomDAO;
 
 /**
  *
@@ -26,12 +27,14 @@ public class Room {
     private RoomStatus status;
     private List<String> chatsHistory;
     private ArrayList<ServerWorker> workers;
+    private ImplRoomDAO implRoomDAO;
 
     public Room(String name, RoomStatus roomStatus) {
         this.name = name;
         this.status = roomStatus;
         workers = new ArrayList<>();
         chatsHistory = new ArrayList<>();
+        implRoomDAO = new ImplRoomDAO();
     }
 
     public void addWorkerMember(ServerWorker member) {
@@ -74,10 +77,12 @@ public class Room {
     public void sendMessageToRoomate(Command command, String from, String msg) throws IOException {
         String messageContent = from + " :" + msg;
         if (command == Command.SEND) {
-            this.chatsHistory.add(messageContent);
+            // save mess to DB
+            boolean c = implRoomDAO.insertMess(this.name, from, msg);
+            this.chatsHistory.add(messageContent); 
         }
         for (ServerWorker worker : workers) {
-            if (!worker.getAcount().getUserName().equals(from)) {
+            if (!worker.getAcount().getUserName().equals(from)) { // send mess 
                 Message<String> message = new Message(command, msg, from, this.getName());
                 worker.send(message);
             }
