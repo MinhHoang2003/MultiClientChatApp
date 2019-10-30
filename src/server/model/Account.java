@@ -17,6 +17,9 @@ public class Account {
     private String password;
     private AccountStatus status;
 
+    public Account() {
+    }
+
     public Account(String UserName, String password) {
         this.userName = UserName;
         this.password = password;
