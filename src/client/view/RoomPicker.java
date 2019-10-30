@@ -6,7 +6,9 @@
 package client.view;
 
 import client.controller.Client;
+import client.controller.Command;
 import client.listener.OnGetRoomsListener;
+import client.listener.OnInviteFriendListener;
 import client.listener.OnJoinRoomListener;
 import client.listener.OnShowRoomPickerListener;
 import client.model.RoomClientSide;
@@ -33,7 +35,7 @@ import server.model.RoomStatus;
  * @author hoang
  */
 public class RoomPicker extends javax.swing.JFrame implements
-        OnGetRoomsListener, OnJoinRoomListener, OnShowRoomPickerListener {
+        OnGetRoomsListener, OnJoinRoomListener, OnShowRoomPickerListener, OnInviteFriendListener {
 
     /**
      * Creates new form RoomPicker
@@ -51,6 +53,7 @@ public class RoomPicker extends javax.swing.JFrame implements
         client.getRoomsClientSide();
         client.addOnGetRoomsListener(this);
         client.addOnJoinRoomListener(this);
+        client.setOnInviteFriendListener(this);
     }
 
     private void setUp(List<RoomClientSide> rooms) {
@@ -64,24 +67,6 @@ public class RoomPicker extends javax.swing.JFrame implements
         jListRooms.setModel(model);
         jListRooms.setCellRenderer(new RoomRenderer());
         jListRooms.setBackground(Color.WHITE);;
-        jListRooms.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {//This line prevents double events
-                    rcs = jListRooms.getSelectedValue();
-                    if(rcs == null ) return;
-                    if (rcs.getRoomStatus() == RoomStatus.PRIVATE) {
-                        showInputPasswordBox();
-                    } else {
-                        try {
-                            client.joinRoom(rcs.getName(), null);
-                        } catch (IOException ex) {
-                            Logger.getLogger(RoomPicker.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-            }
-        });
     }
 
     private void showInputPasswordBox() {
@@ -121,7 +106,13 @@ public class RoomPicker extends javax.swing.JFrame implements
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 10, -1, -1));
 
         jListRooms.setForeground(new java.awt.Color(255, 255, 255));
+        jListRooms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jListRooms.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jListRooms.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jListRoomsMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jListRooms);
 
         getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 310, 430));
@@ -131,6 +122,23 @@ public class RoomPicker extends javax.swing.JFrame implements
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jListRoomsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListRoomsMouseClicked
+        System.out.println("join room listener");
+        rcs = jListRooms.getSelectedValue();
+        if (rcs == null) {
+            return;
+        }
+        if (rcs.getRoomStatus() == RoomStatus.PRIVATE) {
+            showInputPasswordBox();
+        } else {
+            try {
+                client.joinRoom(rcs.getName(), null);
+            } catch (IOException ex) {
+                Logger.getLogger(RoomPicker.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jListRoomsMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
@@ -147,6 +155,9 @@ public class RoomPicker extends javax.swing.JFrame implements
 
     @Override
     public void onJoinRoomSuccessful(String msg) {
+        if (!checkRoom(msg)) {
+            return;
+        }
         MainChatClientScreen newRoom = new MainChatClientScreen(client, msg);
         newRoom.setOnShowRoomPickerListener(this);
         chatViews.add(newRoom);
@@ -158,9 +169,11 @@ public class RoomPicker extends javax.swing.JFrame implements
             @Override
             public void windowClosed(WindowEvent e) {
                 chatViews.remove(newRoom);
-                System.out.println("Frame: " + chatViews.size());
+                System.out.println("ChatViews size: " + chatViews.size());
+                System.out.println("Frame: " + newRoom.getTitle());
                 if (chatViews.isEmpty()) {
                     RoomPicker.this.setVisible(true);
+                    RoomPicker.this.jListRooms.clearSelection();
                 }
             }
         });
@@ -175,5 +188,40 @@ public class RoomPicker extends javax.swing.JFrame implements
     @Override
     public void onShowRoomPikcer() {
         RoomPicker.this.setVisible(true);
+        this.client.getRoomsClientSide();
+        RoomPicker.this.jListRooms.clearSelection();
+    }
+
+    public boolean checkRoom(String roomName) {
+        for (MainChatClientScreen room : chatViews) {
+            if (room.getRoomName().equals(roomName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onFailToInviateFriend(String roomName, String mess) {
+        System.out.println("OnFail: " + mess);
+        JOptionPane.showMessageDialog(this, mess);
+    }
+
+    @Override
+    public void onShowInviteMessage(String inviter, String rommName, String mess) {
+        System.out.println("OnShow: " + mess);
+        int input = JOptionPane.showConfirmDialog(this,
+                mess, "Invite box",
+                JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+
+        // 0=ok, 2=cancel
+        String reponseMessage = null;
+        if (input == 0) {
+            reponseMessage = "accept "+ inviter;
+        } else {
+            reponseMessage = "refuse "+ inviter;
+        }
+        client.responseInvite(reponseMessage, rommName);
+
     }
 }

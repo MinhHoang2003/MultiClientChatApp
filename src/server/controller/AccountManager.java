@@ -63,4 +63,12 @@ public class AccountManager {
         return false;
     }
 
+    public boolean isValidUserName(String user) {
+        for (Account account : accounts) {
+            if (account.getUserName().equals(user)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

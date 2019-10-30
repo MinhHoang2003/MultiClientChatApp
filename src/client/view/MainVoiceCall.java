@@ -6,7 +6,6 @@
 package client.view;
 
 import client.controller.Client;
-import client.listener.UserJoinVoiceCall;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import javax.swing.JLabel;
  *
  * @author DoQuan_User
  */
-public class MainVoiceCall extends javax.swing.JFrame implements UserJoinVoiceCall {
+public class MainVoiceCall extends javax.swing.JFrame {
 
     /**
      * Creates new form MainVoiceCall
@@ -28,7 +27,6 @@ public class MainVoiceCall extends javax.swing.JFrame implements UserJoinVoiceCa
         initComponents();
         this.client = client;
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        client.getOnUsersJoinVoiceCall(this);
         client.startVoiceChatThread();
         
         this.addWindowListener(new WindowAdapter() {
@@ -118,13 +116,4 @@ public class MainVoiceCall extends javax.swing.JFrame implements UserJoinVoiceCa
     private javax.swing.JLabel lbl_participant;
     private javax.swing.JLabel lbl_titleOfVoiceCall;
     // End of variables declaration//GEN-END:variables
-
-    @Override
-    public void setUserJoinVoiceCall(String user) {
-        if (this.lbl_participant.getText().equals("participants:")) {
-            this.lbl_participant.setText(this.lbl_participant.getText() + " " + user);
-        } else {
-            this.lbl_participant.setText(this.lbl_participant.getText() + ", " + user);
-        }
-    }
 }

@@ -19,7 +19,7 @@ public class RoomAndAccountManager {
 
     private static RoomAndAccountManager roomAndAccountManager;
 
-    private Map<String, String> roomAndAccount;
+    private Map<String, ArrayList<String>> roomAndAccount;
 
     private RoomAndAccountManager() {
         roomAndAccount = new HashMap<>();
@@ -33,27 +33,35 @@ public class RoomAndAccountManager {
     }
 
     public void addRelationship(String user, String roomName) {
-        roomAndAccount.put(user, roomName);
+        if (roomAndAccount.get(user) == null) {
+            ArrayList<String> roomNames = new ArrayList<>();
+            roomNames.add(roomName);
+            roomAndAccount.put(user, roomNames);
+        } else {
+            roomAndAccount.get(user).add(roomName);
+        }
     }
 
     public void removeRelationship(String user, String room) {
         Iterator it = roomAndAccount.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<String, String> item = (Map.Entry<String, String>) it.next();
+            Map.Entry<String, ArrayList<String>> item = (Map.Entry<String, ArrayList<String>>) it.next();
             //it.remove() will delete the item from the map
-            if (item.getValue().equals(room) && item.getKey().equals(user)) {
-                it.remove();
+            if (item.getKey().equals(user)) {
+                ArrayList<String> rooms = item.getValue();
+                Iterator<String> iterator = rooms.iterator();
+                while (iterator.hasNext()) {
+                    String language = iterator.next();
+                    if (language.equals(room)) {
+                        iterator.remove();
+                    }
+                }
             }
         }
     }
+    
 
     public List<String> getRoomsByUser(String user) {
-        List<String> rooms = new ArrayList<>();
-        roomAndAccount.forEach((userName, roomName) -> {
-            if (user.equals(userName)) {
-                rooms.add(roomName);
-            }
-        });
-        return rooms;
+        return roomAndAccount.get(user);
     }
 }

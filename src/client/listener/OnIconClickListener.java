@@ -7,8 +7,8 @@ package client.listener;
 
 /**
  *
- * @author DoQuan_User
+ * @author hoang
  */
-public interface UserJoinVoiceCall {
-    public void setUserJoinVoiceCall(String user);
+public interface OnIconClickListener {
+   void onIconClicked(String name);
 }

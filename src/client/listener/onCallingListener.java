@@ -5,12 +5,10 @@
  */
 package client.listener;
 
-import java.util.List;
-
 /**
  *
  * @author hoang
  */
-public interface OnGetHistoryListener {
-    void onGetMessageHistorys(List<String> historys,String roomName);
+public interface onCallingListener {
+    void onStop();
 }

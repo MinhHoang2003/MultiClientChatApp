@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import server.controller.ServerWorker;
 
 /**
@@ -36,6 +34,11 @@ public class Room {
     }
 
     public void addWorkerMember(ServerWorker member) {
+        for (ServerWorker worker : workers) {
+            if (worker.getAcount().getUserName().equals(member.getAcount().getUserName())) {
+                return;
+            }
+        }
         workers.add(member);
         System.out.println("Online in room " + name + " " + workers.size());
     }
@@ -100,6 +103,15 @@ public class Room {
                 worker.send(message);
             }
         }
+    }
+    
+    public ServerWorker getWorkerByName(String userName){
+        for(ServerWorker worker : workers){
+            if(worker.getAcount().getUserName().equals(userName)){
+                return worker;
+            }
+        }
+        return null;
     }
 
     public void sendVoiceToRoom(DatagramPacket dp, String from) throws IOException {

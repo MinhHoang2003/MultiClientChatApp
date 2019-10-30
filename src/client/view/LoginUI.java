@@ -76,7 +76,7 @@ public class LoginUI extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("DialogInput", 2, 12)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel6.setText("If you don't hava account, click register ");
+        jLabel6.setText("If you don't have account, click register ");
         getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 80, 310, -1));
 
         jButtonLogin.setBackground(new java.awt.Color(0, 153, 153));
@@ -271,7 +271,11 @@ public class LoginUI extends javax.swing.JFrame {
         String pass = new String(jTextPassword.getPassword());
         if (!user.isEmpty() && !pass.isEmpty()) {
             System.out.println("register");
-            client.register(user, pass);
+            if (client.register(user, pass)) {
+                JOptionPane.showMessageDialog(this, "Register successful!!");
+            } else {
+                JOptionPane.showMessageDialog(this, "Register fail!!");
+            }
         }
     }
 }
