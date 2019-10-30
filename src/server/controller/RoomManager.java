@@ -5,6 +5,9 @@
  */
 package server.controller;
 
+import client.model.RoomClientSide;
+import dao.ImplRoomDAO;
+import dao.RoomDAO;
 import server.model.RoomStatus;
 import server.model.Room;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ public class RoomManager {
 
     private static RoomManager roomManager;
     private ArrayList<Room> rooms;
+    private RoomDAO roomDAO;
 
     public static RoomManager getInstance() {
         if (roomManager == null) {
@@ -27,16 +31,22 @@ public class RoomManager {
     }
 
     public RoomManager() {
+        roomDAO = new ImplRoomDAO();
         rooms = new ArrayList<>();
-        rooms.add(new Room("General", RoomStatus.PUBLIC));
-        rooms.add(new Room("develop", RoomStatus.PUBLIC));
-        Room room = new Room("test", RoomStatus.PRIVATE);
-        List<String> historys = new ArrayList<>();
-        historys.add("nam : hello");
-        room.setChatsHistory(historys);
+        List<RoomClientSide> listRoom = roomDAO.getRoomClient();
+        for (RoomClientSide l : listRoom) {
+            rooms.add(new Room(l.getName(), l.getRoomStatus()));
+        }
 
-        room.setPassword("hello");
-        rooms.add(room);
+//        rooms.add(new Room("General", RoomStatus.PUBLIC));
+//        rooms.add(new Room("develop", RoomStatus.PUBLIC));
+//        Room room = new Room("test", RoomStatus.PRIVATE);
+//        List<String> historys = new ArrayList<>();
+//        historys.add("nam : hello");
+//        room.setChatsHistory(historys);
+//
+//        room.setPassword("hello");
+//        rooms.add(room);
     }
 
     public ArrayList<Room> getRooms() {
@@ -51,7 +61,7 @@ public class RoomManager {
         Room room = getRoomByName(name);
         if (room.getStatus() == RoomStatus.PRIVATE && password == null) {
             return null;
-        } else if (room.getStatus() == RoomStatus.PRIVATE && password.equals(room.getPassword())) {
+        } else if (room.getStatus() == RoomStatus.PRIVATE && roomDAO.checkPassword(name, password)) {
             return room;
         }
         return null;
@@ -66,8 +76,13 @@ public class RoomManager {
         return null;
     }
 
-    public void createNewRoom(Room room) {
+    public void createNewRoom(Room room, String owner) {
         System.out.println("Create new room " + room.getName());
+        if (room.getStatus() == RoomStatus.PRIVATE) {
+            roomDAO.addRoom(room.getName(), room.getPassword(), 0, owner);
+        } else {
+            roomDAO.addRoom(room.getName(), room.getPassword(), 1, owner);
+        }
         this.rooms.add(room);
     }
 }

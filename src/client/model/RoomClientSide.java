@@ -16,6 +16,9 @@ public class RoomClientSide implements Serializable{
     private String name;
     private RoomStatus roomStatus; 
 
+    public RoomClientSide() {
+    }
+
     public RoomClientSide(String name, RoomStatus roomStatus) {
         this.name = name;
         this.roomStatus = roomStatus;

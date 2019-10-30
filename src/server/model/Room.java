@@ -22,18 +22,24 @@ import server.controller.ServerWorker;
 public class Room {
 
     private String name;
+    private String owner;
     private String password;
     private RoomStatus status;
-    private List<String> chatsHistory;
+//    private List<String> chatsHistory;
     private ArrayList<ServerWorker> workers;
-    
+
+    public Room(String name, String owner, RoomStatus status) {
+        this.name = name;
+        this.owner = owner;
+        this.status = status;
+    }
 
     public Room(String name, RoomStatus roomStatus) {
-        
+
         this.name = name;
         this.status = roomStatus;
         workers = new ArrayList<>();
-        chatsHistory = new ArrayList<>();
+//        chatsHistory = new ArrayList<>();
     }
 
     public void addWorkerMember(ServerWorker member) {
@@ -53,7 +59,7 @@ public class Room {
     public String getPassword() {
         return password;
     }
-
+    
     public RoomStatus getStatus() {
         return status;
     }
@@ -65,7 +71,7 @@ public class Room {
     public void setPassword(String password) {
         this.password = password;
     }
-
+    
     public ArrayList<ServerWorker> getWorkers() {
         return workers;
     }
@@ -80,10 +86,9 @@ public class Room {
         return his;
     }
 
-    public void setChatsHistory(List<String> chatsHistory) {
-        this.chatsHistory = chatsHistory;
-    }
-
+//    public void setChatsHistory(List<String> chatsHistory) {
+//        this.chatsHistory = chatsHistory;
+//    }
     public void sendMessageToRoomate(Command command, String from, String msg) throws IOException {
         String messageContent = from + " :" + msg;
         if (command == Command.SEND) {
@@ -105,19 +110,19 @@ public class Room {
         }
 
     }
-    
+
     public void setStatusRinging(String from) throws IOException {
-        for (ServerWorker worker: workers) {
+        for (ServerWorker worker : workers) {
             if (!worker.getAcount().getUserName().equals(from)) {
                 Message<String> message = new Message(Command.VOICECALL, "", from, this.getName());
                 worker.send(message);
             }
         }
     }
-    
-    public ServerWorker getWorkerByName(String userName){
-        for(ServerWorker worker : workers){
-            if(worker.getAcount().getUserName().equals(userName)){
+
+    public ServerWorker getWorkerByName(String userName) {
+        for (ServerWorker worker : workers) {
+            if (worker.getAcount().getUserName().equals(userName)) {
                 return worker;
             }
         }
@@ -125,7 +130,7 @@ public class Room {
     }
 
     public void sendVoiceToRoom(DatagramPacket dp, String from) throws IOException {
-        for (ServerWorker worker: workers) {
+        for (ServerWorker worker : workers) {
             if (!worker.getAcount().getUserName().equals(from)) {
                 worker.sendDatagram(dp);
             }

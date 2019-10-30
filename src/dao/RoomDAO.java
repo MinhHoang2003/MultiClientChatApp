@@ -5,6 +5,7 @@
  */
 package dao;
 
+import client.model.RoomClientSide;
 import java.util.List;
 import server.model.MessInRoom;
 
@@ -15,4 +16,13 @@ import server.model.MessInRoom;
 public interface RoomDAO {
     boolean insertMess(String roomName, String username, String content);
     List<MessInRoom> getMessByRoomName(String roomName);
+    // 31/10/2019
+    List<RoomClientSide> getRoomClient();
+    RoomClientSide getRoomByName(String roomName);
+    boolean checkExitsRoom(String roomName); // proc getRoomByName
+    boolean checkOwner(String roomName, String owner); // proc getOwnerByRoomName
+    boolean deleteRoomByName(String roomName);
+    boolean addRoom(String roomName, String password, int status, String owner);
+    boolean checkPassword(String roomName, String password);
+    // check join room
 }

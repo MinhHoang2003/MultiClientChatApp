@@ -17,6 +17,7 @@ import client.model.Message;
 import client.model.RoomClientSide;
 import client.view.MainVoiceCall;
 import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
+import dao.ImplRoomDAO;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -228,7 +229,7 @@ public class ServerWorker extends Thread {
                 status = roomName + " is a private room, you must input the password\n";
             }
         } else {
-            if (room != null && room.getPassword().equals(pass)) {
+            if (room != null && new ImplRoomDAO().checkPassword(roomName, pass)) {
                 room.addWorkerMember(this);
                 manager.addRelationship(user, roomName);
                 room.sendMessageToRoomate(Command.LOGON, this.acount.getUserName(), " has join the room\n");
@@ -347,7 +348,7 @@ public class ServerWorker extends Thread {
                     room = new Room(roomName, RoomStatus.PRIVATE);
                     room.setPassword(password);
                 }
-                server.getRoomManager().createNewRoom(room);
+                server.getRoomManager().createNewRoom(room, message.getFrom());
                 response = new Message<>(Command.CREATE, "Done", Server.SYSTEM, message.getFrom());
             }
         }
