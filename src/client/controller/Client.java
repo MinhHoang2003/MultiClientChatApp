@@ -7,9 +7,11 @@ package client.controller;
 
 import client.model.Message;
 import client.listener.MessageListener;
+import client.listener.OnCreateRoomListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
 import client.listener.OnGetRoomsListener;
+import client.listener.OnInviteFriendListener;
 import client.listener.OnJoinRoomListener;
 import client.listener.OnLeaveRoomListener;
 import client.listener.UserStatusListener;
@@ -55,6 +57,8 @@ public class Client {
     private final List<OnLeaveRoomListener> onLeaveRoomListeners = new ArrayList<>();
     private final List<OnGetHistoryListener> onGetHistoryListeners = new ArrayList<>();
     private final List<OnGetFileListener> onGetFileListeners = new ArrayList<>();
+    private OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult;
+    private OnInviteFriendListener onInviteFriendListener;
 
     private Client(LoginUI clientView, String serverName, int port) {
         this.serverName = serverName;
@@ -110,6 +114,14 @@ public class Client {
         this.onGetFileListeners.add(listener);
     }
 
+    public void setOnCreateRoomResult(OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult) {
+        this.onCreateRoomResult = onCreateRoomResult;
+    }
+
+    public void setOnInviteFriendListener(OnInviteFriendListener onInviteFriendListener) {
+        this.onInviteFriendListener = onInviteFriendListener;
+    }
+    
     public boolean connection() {
         try {
             this.socket = new Socket(serverName, serverPort);
@@ -212,7 +224,7 @@ public class Client {
                     case HISTORY: {
                         List<String> historys = (List<String>) message.getBody();
                         for (OnGetHistoryListener listener : onGetHistoryListeners) {
-                            listener.onGetMessageHistorys(historys,message.getFrom());
+                            listener.onGetMessageHistorys(historys, message.getFrom());
                         }
                         break;
                     }
@@ -231,6 +243,23 @@ public class Client {
                         }
                         break;
                     }
+                    case CREATE:
+                        String result = (String) message.getBody();
+                        if (result.equalsIgnoreCase("Done")) {
+                            onCreateRoomResult.onCreateRoomSuccessful();
+                        } else {
+                            onCreateRoomResult.onCreateRoomFail();
+                        }
+                        break;
+                    case INVITE:
+                        String messBody = (String) message.getBody();
+                        String room = message.getFrom();
+                        if (messBody.startsWith("Fail")) {
+                            onInviteFriendListener.onFailToInviateFriend(room, messBody);
+                        } else {
+                            onInviteFriendListener.onShowInviteMessage("",room,messBody);
+                        }
+                        break;
                 }
             }
         } catch (IOException ex) {
@@ -352,6 +381,37 @@ public class Client {
             FileInfo file = getFileInfo(source);
             Message<FileInfo> message = new Message<>(Command.FILE, file, userName, roomName);
             serverOut.writeObject(message);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void createRoom(String roomName, String roomType, String password) {
+        try {
+            String createRoomMessage = roomName + "|" + roomType + "|" + password;
+            Message<String> createRoom = new Message<>(Command.CREATE, createRoomMessage, this.userName, Server.SYSTEM);
+
+            serverOut.writeObject(createRoom);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public void inviteFriendJoinRoom(String friendName, String roomName) {
+        try {
+            String inviteBody = "invite "+friendName;
+            Message<String> invite = new Message<>(Command.INVITE, inviteBody, client.getUserName(), roomName);
+            serverOut.writeObject(invite);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void responseInvite(String responseBody,String roomName){
+        try {
+            Message<String> response = new Message<>(Command.INVITE,responseBody,this.getUserName(),roomName);
+            serverOut.writeObject(response);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
