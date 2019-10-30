@@ -9,6 +9,7 @@ import client.controller.Command;
 import client.model.FileInfo;
 import client.model.Message;
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.List;
 import server.controller.ServerWorker;
@@ -94,6 +95,16 @@ public class Room {
         }
 
     }
+    
+    public void setStatusRinging(String from) throws IOException {
+        for (ServerWorker worker: workers) {
+            if (!worker.getAcount().getUserName().equals(from)) {
+                Message<String> message = new Message(Command.VOICECALL, "", from, this.getName());
+                worker.send(message);
+            }
+        }
+    }
+    
     public ServerWorker getWorkerByName(String userName){
         for(ServerWorker worker : workers){
             if(worker.getAcount().getUserName().equals(userName)){
@@ -103,4 +114,11 @@ public class Room {
         return null;
     }
 
+    public void sendVoiceToRoom(DatagramPacket dp, String from) throws IOException {
+        for (ServerWorker worker: workers) {
+            if (!worker.getAcount().getUserName().equals(from)) {
+                worker.sendDatagram(dp);
+            }
+        }
+    }
 }

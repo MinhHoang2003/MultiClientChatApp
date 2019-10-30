@@ -10,6 +10,7 @@ import client.controller.Command;
 import client.controller.IconManager;
 import client.model.Message;
 import client.listener.MessageListener;
+import client.listener.OnGetCallListener;
 import client.listener.OnCreateRoomListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
@@ -48,10 +49,11 @@ import javax.swing.text.StyledDocument;
  *
  * @author hoang
  */
+
 public class MainChatClientScreen extends javax.swing.JFrame implements
         MessageListener, UserStatusListener, RoomMemmberListener, OnLeaveRoomListener,
         OnGetHistoryListener, OnGetFileListener, OnIconClickListener, OnCreateRoomListener.OnCreateRoomResult,
-        OnCreateRoomListener.OnStartCreateRoom {
+        OnCreateRoomListener.OnStartCreateRoom, OnGetCallListener {
 
     private Client client;
     private String roomName;
@@ -80,6 +82,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         client.addOnLeaveRoomListener(this);
         client.addOnGetHistoryListener(this);
         client.addOnGetFileListener(this);
+        client.addOnGetCallListener(this);
         client.getChatHistory(roomName);
         client.setOnCreateRoomResult(this);
         //icon 
@@ -105,6 +108,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabelRoomName = new javax.swing.JLabel();
+        btn_voiceCall = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -191,6 +195,14 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jLabelRoomName.setForeground(new java.awt.Color(255, 255, 255));
         jLabelRoomName.setText("RoomName");
         getContentPane().add(jLabelRoomName, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 10, -1, -1));
+
+        btn_voiceCall.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/icons8-call-24.png"))); // NOI18N
+        btn_voiceCall.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_voiceCallActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_voiceCall, new org.netbeans.lib.awtextra.AbsoluteConstraints(509, 315, 70, 30));
 
         jList1.setBorder(javax.swing.BorderFactory.createTitledBorder("Members"));
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
@@ -338,6 +350,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
+    private void btn_voiceCallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_voiceCallActionPerformed
+        handleSenderCall();
+        client.makeVoiceCall(roomName);
+    }//GEN-LAST:event_btn_voiceCallActionPerformed
+
     private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
         this.iconPicker.setVisible(true);
     }//GEN-LAST:event_jLabel3MouseClicked
@@ -440,7 +457,30 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
 
     }
-
+    
+    public void handleReceiverCall() {
+        Object[] choices = {"Decline", "Accept"};
+        Object defaultChoice = choices[1];
+        int input = JOptionPane.showOptionDialog(this,
+             "You got a call",
+             "Voice call",
+             JOptionPane.YES_NO_OPTION,
+             JOptionPane.INFORMATION_MESSAGE,
+             null,
+             choices,
+             defaultChoice);
+        
+        if (input == 1) {
+            MainVoiceCall mvc = new MainVoiceCall(client);
+            mvc.setVisible(true);
+        }
+    }
+    
+    public void handleSenderCall() {
+        MainVoiceCall mvc = new MainVoiceCall(client);
+        mvc.setVisible(true);
+    }
+    
     @Override
     public void onMessageListener(Message message) {
         try {
@@ -503,6 +543,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel background;
+    private javax.swing.JButton btn_voiceCall;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -582,6 +623,13 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
 
     @Override
+    public void onGetCall(String status, String from) {
+        System.out.println("go mainchat");
+        if (!from.equals(client.getUserName())) {
+            handleReceiverCall();
+        }
+    }
+
     public void onIconClicked(String name) {
         URL iconPath = this.iconManager.getIconPath(name);
         System.out.println(iconPath.toString());
@@ -619,5 +667,4 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     public void onStart(String roomName, String roomType, String pass) {
         this.client.createRoom(roomName, roomType, pass);
     }
-
 }

@@ -7,6 +7,7 @@ package client.controller;
 
 import client.model.Message;
 import client.listener.MessageListener;
+import client.listener.OnGetCallListener;
 import client.listener.OnCreateRoomListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
@@ -30,9 +31,20 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.TargetDataLine;
 import server.controller.Server;
+import server.controller.ServerWorker;
 
 /**
  *
@@ -47,6 +59,15 @@ public class Client {
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
     private String userName;
+    private TargetDataLine audio_in;
+    private SourceDataLine audio_out;
+    private DatagramSocket dout;
+    private DatagramSocket din;
+    private DatagramPacket DpSend;
+    private DatagramPacket DpReceive;
+    private byte byte_read[] = new byte [512];
+    Thread voiceCall;
+    public static boolean flag = true;
 
     //message listener
     private final List<MessageListener> messageListeners = new ArrayList<>();
@@ -57,6 +78,7 @@ public class Client {
     private final List<OnLeaveRoomListener> onLeaveRoomListeners = new ArrayList<>();
     private final List<OnGetHistoryListener> onGetHistoryListeners = new ArrayList<>();
     private final List<OnGetFileListener> onGetFileListeners = new ArrayList<>();
+    private final List<OnGetCallListener> onGetCallListeners = new ArrayList<>();
     private OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult;
     private OnInviteFriendListener onInviteFriendListener;
 
@@ -72,6 +94,47 @@ public class Client {
             client = new Client(clientView, serverName, port);
         }
         return client;
+    }
+    
+    public static AudioFormat getAudioFormat() {
+        float sampleRate = 8000.0F;
+        int sampleSizeInbits = 16;
+        int channel = 2;
+        boolean signed = true;
+        boolean bigEndian = false;
+        return new AudioFormat(sampleRate, sampleSizeInbits, channel, signed, bigEndian);
+    }
+    
+    public void init_audio_in() {
+        try {
+            AudioFormat format = getAudioFormat();
+            DataLine.Info info_in = new DataLine.Info(TargetDataLine.class, format);
+            if (!AudioSystem.isLineSupported(info_in)) {
+                System.out.println("Line for in not supported");
+                System.exit(0);
+            }
+            audio_in = (TargetDataLine) AudioSystem.getLine(info_in);
+            audio_in.open(format);
+            audio_in.start();
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void init_audio_out() {
+        try {
+            AudioFormat format = getAudioFormat();
+            DataLine.Info info_out = new DataLine.Info(SourceDataLine.class, format);
+            if(!AudioSystem.isLineSupported(info_out)){
+                System.out.println("Line for out not supported");
+                System.exit(0);
+            }
+            audio_out = (SourceDataLine)AudioSystem.getLine(info_out);
+            audio_out.open(format);
+            audio_out.start();
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void addMessageListener(MessageListener listener) {
@@ -113,7 +176,11 @@ public class Client {
     public void addOnGetFileListener(OnGetFileListener listener) {
         this.onGetFileListeners.add(listener);
     }
-
+    
+    public void addOnGetCallListener(OnGetCallListener listener) {
+        this.onGetCallListeners.add(listener);
+    }
+    
     public void setOnCreateRoomResult(OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult) {
         this.onCreateRoomResult = onCreateRoomResult;
     }
@@ -155,88 +222,96 @@ public class Client {
                     readMessageLoop();
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SocketException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         };
         t.start();
     }
 
-    public void readMessageLoop() throws ClassNotFoundException {
+    public void readMessageLoop() throws ClassNotFoundException, SocketException {
         Message message;
         try {
             while (true) {
                 message = (Message) serverIn.readObject();
-                Command cmd = message.getCmd();
-                switch (cmd) {
-                    case SEND: {
-                        for (MessageListener listener : this.messageListeners) {
-                            listener.onMessageListener(message);
-                        }
-                        break;
-                    }
-                    case RESPONSE: {
-                        for (MessageListener listener : this.messageListeners) {
-                            listener.onMessageListener(message);
-                        }
-                        break;
-                    }
-                    case LOGON: {
-                        for (UserStatusListener listener : this.userStatusListeners) {
-                            listener.onUserLogOn(message);
-                        }
-                        break;
-                    }
-                    case ROOM_MEMMBER:
-                        for (RoomMemmberListener listener : roomMemmberCallbacks) {
-                            listener.onRoomMemmberOnline(message);
-                        }
-                        break;
-                    case LOGOFF: {
-                        for (UserStatusListener listener : this.userStatusListeners) {
-                            listener.onUserLogOff(message);
-                        }
-                        break;
-                    }
-                    case ROOM:
-                        for (OnGetRoomsListener listener : this.onGetRoomsListeners) {
-                            List<RoomClientSide> rooms = (List<RoomClientSide>) message.getBody();
-                            System.out.println("geted rooms");
-                            listener.onGetRooms(rooms);
-                        }
-                        break;
-                    case JOIN:
-                        for (OnJoinRoomListener listener : this.onJoinRoomListeners) {
-                            String room = message.getFrom();
-                            String status = (String) message.getBody();
-                            System.out.println("Join room: " + room + " " + status);
-                            if ("ok".equalsIgnoreCase(status)) {
-                                listener.onJoinRoomSuccessful(room);
-                            } else {
-                                listener.onJoinRoomFail(status);
+                
+                if (message != null) {
+                    Command cmd = message.getCmd();
+                    switch (cmd) {
+                        case SEND: {
+                            for (MessageListener listener : this.messageListeners) {
+                                listener.onMessageListener(message);
                             }
+                            break;
                         }
-                        break;
-                    case LEAVE:
-                        for (OnLeaveRoomListener listener : this.onLeaveRoomListeners) {
-                            listener.onLeaveRoom(message);
+                        case RESPONSE: {
+                            for (MessageListener listener : this.messageListeners) {
+                                listener.onMessageListener(message);
+                            }
+                            break;
                         }
+                        case LOGON: {
+                            for (UserStatusListener listener : this.userStatusListeners) {
+                                listener.onUserLogOn(message);
+                            }
+                            break;
+                        }
+                        case ROOM_MEMMBER:
+                            for (RoomMemmberListener listener : roomMemmberCallbacks) {
+                                listener.onRoomMemmberOnline(message);
+                            }
+                            break;
+                        case LOGOFF: {
+                            for (UserStatusListener listener : this.userStatusListeners) {
+                                listener.onUserLogOff(message);
+                            }
+                            break;
+                        }
+                        case ROOM:
+                            for (OnGetRoomsListener listener : this.onGetRoomsListeners) {
+                                List<RoomClientSide> rooms = (List<RoomClientSide>) message.getBody();
+                                System.out.println("geted rooms");
+                                listener.onGetRooms(rooms);
+                            }
+                            break;
+                        case JOIN:
+                            for (OnJoinRoomListener listener : this.onJoinRoomListeners) {
+                                String room = message.getFrom();
+                                String status = (String) message.getBody();
+                                System.out.println("Join room: " + room + " " + status);
+                                if ("ok".equalsIgnoreCase(status)) {
+                                    listener.onJoinRoomSuccessful(room);
+                                } else {
+                                    listener.onJoinRoomFail(status);
+                                }
+                            }
+                            break;
+                        case LEAVE:
+                            for (OnLeaveRoomListener listener : this.onLeaveRoomListeners) {
+                                listener.onLeaveRoom(message);
+                            }
+                            break;
+                        case VOICECALL:
+                            String receiveSignal = (String) message.getBody();
+                            System.out.println("call listener");
+                            for(OnGetCallListener listener : onGetCallListeners){
+                                listener.onGetCall(receiveSignal, message.getFrom());
+                            }
                         break;
-                    case HISTORY: {
+                    case HISTORY:
                         List<String> historys = (List<String>) message.getBody();
                         for (OnGetHistoryListener listener : onGetHistoryListeners) {
                             listener.onGetMessageHistorys(historys, message.getFrom());
                         }
                         break;
-                    }
-                    case FILE: {
+                    case FILE: 
                         FileInfo file = (FileInfo) message.getBody();
                         System.out.println("file listener");
                         for (OnGetFileListener listener : onGetFileListeners) {
                             listener.onGetFile(file, message.getFrom());
                         }
                         break;
-
-                    }
                     case ICON: {
                         for (MessageListener listener : this.messageListeners) {
                             listener.onMessageListener(message);
@@ -260,7 +335,9 @@ public class Client {
                             onInviteFriendListener.onShowInviteMessage("",room,messBody);
                         }
                         break;
+                    }
                 }
+                
             }
         } catch (IOException ex) {
             try {
@@ -386,6 +463,37 @@ public class Client {
         }
     }
 
+     public void makeVoiceCall(String roomName) {
+        try {
+            Message<String> message = new Message(Command.VOICECALL, "", userName, roomName);
+            serverOut.writeObject(message);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendVoiceCall() {
+        try { 
+            int read = audio_in.read(byte_read, 0, byte_read.length);
+            DpSend = new DatagramPacket(byte_read, byte_read.length, InetAddress.getLocalHost(), 12345);
+            dout.send(DpSend);
+            byte_read = new byte [512];
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void receiveVoiceCall() {
+        try {
+            DpReceive = new DatagramPacket(byte_read, byte_read.length);
+            din.receive(DpReceive);
+            audio_out.write(byte_read, 0, byte_read.length);
+            byte_read = new byte [512];
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void createRoom(String roomName, String roomType, String password) {
         try {
             String createRoomMessage = roomName + "|" + roomType + "|" + password;
@@ -416,5 +524,49 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-}
+    
+    public void initSocketIncome() {
+        try {
+            din = new DatagramSocket(12346);
+        } catch (SocketException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void initSocketOutcome() {
+        try {
+            dout = new DatagramSocket();
+        } catch (SocketException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void startVoiceChatThread(){
+        initSocketIncome();
+        initSocketOutcome();
+        
+        this.init_audio_in();
+        this.init_audio_out();
+        
+        Client.flag = true;
+        
+        voiceCall = new Thread() {
+            @Override
+            public void run() {
+                while (Client.flag) {
+                    sendVoiceCall();
+                    receiveVoiceCall();
+                }
+            }
+        };
+          
+        voiceCall.start();
+    }
+    
+    public void stopVoiceChatThread() {
+        Client.flag = false;
+        
+        audio_out.close();
+        audio_in.close();
+    }
+ }

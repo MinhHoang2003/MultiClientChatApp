@@ -5,11 +5,18 @@
  */
 package server.controller;
 
+import client.listener.OnSendAudioListener;
+import client.model.Message;
 import server.view.ServerMain;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,13 +24,16 @@ import java.util.logging.Logger;
  *
  * @author hoang
  */
-public class Server extends Thread {
+public class Server extends Thread implements OnSendAudioListener {
 
     public static final String SYSTEM = "SYSTEM";
     private final int serverPort;
     private AccountManager accountManager;
     private RoomAndAccountManager roomAndAccountManager;
     private RoomManager roomManager;
+    private DatagramSocket dataReceive;
+    private DatagramSocket dataSend;
+    private byte[] byte_read = new byte [512];
 
     public Server(int port) {
         this.serverPort = port;
@@ -68,6 +78,8 @@ public class Server extends Thread {
     public RoomManager getRoomManager() {
         return roomManager;
     }
+    
+    
 
     @Override
     public void run() {
@@ -78,10 +90,40 @@ public class Server extends Thread {
                 Socket clientsocket = serverSocket.accept();
                 System.out.println("Accepted connection from" + clientsocket);
                 ServerWorker serverWorker = new ServerWorker(this, clientsocket);
+                serverWorker.setListener(this);
                 serverWorker.start();
             }
         } catch (IOException ex) {
             Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void startUDPThread(Message message) {
+        try {
+            dataReceive = new DatagramSocket(12345);
+            dataSend = new DatagramSocket();
+            Thread UDP_thread = new Thread() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            DatagramPacket DpCome = new DatagramPacket(byte_read, byte_read.length);
+                            dataReceive.receive(DpCome);
+                            System.out.println(Arrays.toString(byte_read));
+                            DatagramPacket DpSend = new DatagramPacket(byte_read, byte_read.length, InetAddress.getLocalHost(), 12346);
+                            dataSend.send(DpSend);
+                            byte_read = new byte [512];
+                        } catch (IOException ex) {
+                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            };
+            
+            UDP_thread.start();
+        } catch (SocketException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

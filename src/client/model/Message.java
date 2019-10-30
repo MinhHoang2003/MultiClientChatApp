@@ -57,5 +57,4 @@ public class Message<T> implements Serializable {
     public void setBody(T body) {
         this.body = body;
     }
-
 }
