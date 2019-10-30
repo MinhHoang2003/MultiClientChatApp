@@ -8,6 +8,7 @@ package server.model;
 import client.controller.Command;
 import client.model.FileInfo;
 import client.model.Message;
+import dao.ImplRoomDAO;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.ArrayList;
@@ -25,8 +26,10 @@ public class Room {
     private RoomStatus status;
     private List<String> chatsHistory;
     private ArrayList<ServerWorker> workers;
+    
 
     public Room(String name, RoomStatus roomStatus) {
+        
         this.name = name;
         this.status = roomStatus;
         workers = new ArrayList<>();
@@ -68,7 +71,13 @@ public class Room {
     }
 
     public List<String> getChatsHistory() {
-        return chatsHistory;
+        List<MessInRoom> listMess = new ImplRoomDAO().getMessByRoomName(name);
+        List<String> his = new ArrayList<>();
+        for (MessInRoom mes : listMess) {
+            String t = mes.getUsername() + " :" + mes.getContent();
+            his.add(t);
+        }
+        return his;
     }
 
     public void setChatsHistory(List<String> chatsHistory) {
@@ -78,7 +87,8 @@ public class Room {
     public void sendMessageToRoomate(Command command, String from, String msg) throws IOException {
         String messageContent = from + " :" + msg;
         if (command == Command.SEND) {
-            this.chatsHistory.add(messageContent);
+//            this.chatsHistory.add(messageContent);
+            new ImplRoomDAO().insertMess(this.name, from, msg);
         }
         for (ServerWorker worker : workers) {
             if (!worker.getAcount().getUserName().equals(from)) {

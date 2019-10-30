@@ -149,7 +149,7 @@ public class ServerWorker extends Thread {
         int index = server.getAccountManager().logingAccount(user, password);
         if (index >= 0) {
             //anounce change status and change status in account manager
-            this.acount = server.getAccountManager().getAccount(index);
+            this.acount = server.getAccountManager().getAccount(user, password);
             String msg = "ok login\n";
             Message response = new Message(Command.RESPONSE, msg, "System", this.getAcount().getUserName());
             this.acount.setStatus(AccountStatus.ONLINE);
@@ -298,6 +298,7 @@ public class ServerWorker extends Thread {
         String userName = message.getReceiver();
         Room room = server.getRoomManager().getRoomByName(roomName);
         if (room != null) {
+            
             List<String> historys = room.getChatsHistory();
             Message<List<String>> reponse = new Message<>(Command.HISTORY, historys, roomName, userName);
             send(reponse);
