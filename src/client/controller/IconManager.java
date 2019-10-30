@@ -30,7 +30,6 @@ public class IconManager {
         icons.put("embarrassed", getClass().getResource("/asset/icon/embarrassed.png"));
         icons.put("smile", getClass().getResource("/asset/icon/smile.png"));
         icons.put("wink", getClass().getResource("/asset/icon/wink.png"));
-
     }
 
     public URL getIconPath(String iconName) {

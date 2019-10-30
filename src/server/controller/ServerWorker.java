@@ -18,6 +18,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,7 +66,7 @@ public class ServerWorker extends Thread {
 
         Message message = null;
         while ((message = (Message) inputStream.readObject()) != null) {
-            System.out.println("Get message ...");
+            System.out.println(message.getFrom() + "  get message ...");
             Command cmd = message.getCmd();
             switch (cmd) {
                 case LOGIN: {
@@ -103,12 +104,15 @@ public class ServerWorker extends Thread {
                 case FILE:
                     handlerSendFile(message);
                     break;
-                case ICON : 
+                case ICON:
                     handlerSendMessage(message);
                     break;
-                default:
-                    String msg = "unknown " + cmd + "\n";
-                    System.out.println(msg);
+                case CREATE:
+                    handlerCreateRoom(message);
+                    break;
+                case INVITE:
+                    handlerInviteFriend(message);
+                    break;
             }
         }
         clientSocket.close();
@@ -144,7 +148,6 @@ public class ServerWorker extends Thread {
         } else {
             msg = "register fail your user name has been taken or password length invalid\n";
         }
-        System.out.println("halderRegister " + msg);
         Message<String> response = new Message(Command.REGISTER, msg, Server.SYSTEM, user);
         send(response);
     }
@@ -160,15 +163,17 @@ public class ServerWorker extends Thread {
 
     private void handlerOffline(Message message) throws IOException {
         String user = message.getFrom();
-        List<String> rooms = server.getRoomAndAccountManager().getRoomsByUser(user);
-        for (String roomName : rooms) {
+        List<String> rooms = new ArrayList<>();
+        rooms.addAll(server.getRoomAndAccountManager().getRoomsByUser(user));
+        Iterator<String> iterator = rooms.iterator();
+        while (iterator.hasNext()) {
+            String roomName = iterator.next();
+            System.out.println(user + " quit room " + roomName);
             Room room = server.getRoomManager().getRoomByName(roomName);
+            server.getRoomAndAccountManager().removeRelationship(user, roomName);
+            server.removeWorker(this, roomName);
             if (room != null) {
-                System.out.println("Quit room " + room.getName());
-                server.removeWorker(this, roomName);
-                message.setCmd(Command.LEAVE);
-                handlerLeaveRoom(message);
-//                room.sendMessageToRoomate(Command.LOGOFF, message.getFrom(), "");
+                room.sendMessageToRoomate(Command.LEAVE, user, "");
             }
         }
         String offlineStatus = this.acount.getUserName() + " has offlined\n";
@@ -264,9 +269,9 @@ public class ServerWorker extends Thread {
         String userName = message.getReceiver();
         Room room = server.getRoomManager().getRoomByName(roomName);
         if (room != null) {
-             List<String> historys = room.getChatsHistory();
-             Message<List<String>> reponse = new Message<>(Command.HISTORY,historys,roomName,userName);
-             send(reponse);
+            List<String> historys = room.getChatsHistory();
+            Message<List<String>> reponse = new Message<>(Command.HISTORY, historys, roomName, userName);
+            send(reponse);
         }
     }
 
@@ -275,9 +280,89 @@ public class ServerWorker extends Thread {
         String roomName = message.getReceiver();
         String user = message.getFrom();
         Room room = server.getRoomManager().getRoomByName(roomName);
-        if(room != null){
-            room.sendFileToRoom((FileInfo) message.getBody(),message.getFrom());
+        if (room != null) {
+            room.sendFileToRoom((FileInfo) message.getBody(), message.getFrom());
         }
     }
 
+    private void handlerCreateRoom(Message message) throws IOException {
+        String creatRoomMessage = (String) message.getBody();
+        String[] tokens = creatRoomMessage.split("\\|", 3);
+        Message<String> response = null;
+        if (tokens.length >= 2) {
+            String roomName = tokens[0];
+            String roomType = tokens[1];
+            String password = null;
+            Room room = server.getRoomManager().getRoomByName(roomName);
+            if (room != null) {
+                response = new Message<>(Command.CREATE, "Fail", Server.SYSTEM, message.getFrom());
+            } else {
+                if (roomType.equalsIgnoreCase("Public")) {
+                    room = new Room(roomName, RoomStatus.PUBLIC);
+                } else {
+                    password = tokens[2];
+                    room = new Room(roomName, RoomStatus.PRIVATE);
+                    room.setPassword(password);
+                }
+                server.getRoomManager().createNewRoom(room);
+                response = new Message<>(Command.CREATE, "Done", Server.SYSTEM, message.getFrom());
+            }
+        }
+        send(response);
+    }
+
+    private void handlerInviteFriend(Message message) throws IOException {
+        String body = (String) message.getBody();
+        String[] tokens = body.split(" ", 2);
+        String command = tokens[0];
+        String friendName = tokens[1];
+        /* 4 types of command : 
+        * invite : invite friend to room
+        * fail : fail to invite -> not online, not exist name
+        * accept : accept invite to room
+        * refuse : refuse this invite
+         */
+        String roomName = message.getReceiver();
+        String from = message.getFrom();
+        switch (command) {
+            case "invite":
+                inviteFriend(roomName, from, friendName);
+                break;
+            case "accept":
+                acceptInviter(roomName, from, friendName);
+                break;
+        }
+
+    }
+
+    private void inviteFriend(String roomName, String from, String friendName) throws IOException {
+        if (!server.getAccountManager().isValidUserName(friendName)) {
+            Message<String> response = new Message<>(Command.INVITE, "Fail : Account not exist", Server.SYSTEM, from);
+            send(response);
+            return;
+        }
+        String messBody = from + " invite you join :" + roomName;
+        Message<String> inviteMessage = new Message<>(Command.INVITE, messBody, roomName, friendName);
+        List<String> roomsHaveFriend = server.getRoomAndAccountManager().getRoomsByUser(friendName);
+        if (roomsHaveFriend != null && roomsHaveFriend.size() > 0) {
+            Room room = server.getRoomManager().getRoomByName(roomsHaveFriend.get(0));
+            if (room != null) {
+                ServerWorker friend = room.getWorkerByName(friendName);
+                if (friend != null) {
+                    friend.send(inviteMessage);
+                }
+            }
+        } else {
+            Message<String> response = new Message<>(Command.INVITE, "Fail : Your friend not online", Server.SYSTEM, from);
+            send(response);
+        }
+    }
+
+    private void acceptInviter(String roomName, String from, String inviter) throws IOException {
+        Room room = server.getRoomManager().getRoomByName(roomName);
+        if (room != null) {
+            Message<String> joinRoom = new Message<>(Command.JOIN, room.getPassword(), from, roomName);
+            handlerJoinRoom(joinRoom);
+        }
+    }
 }

@@ -66,4 +66,8 @@ public class RoomManager {
         return null;
     }
 
+    public void createNewRoom(Room room) {
+        System.out.println("Create new room " + room.getName());
+        this.rooms.add(room);
+    }
 }

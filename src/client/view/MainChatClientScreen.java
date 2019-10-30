@@ -10,9 +10,11 @@ import client.controller.Command;
 import client.controller.IconManager;
 import client.model.Message;
 import client.listener.MessageListener;
+import client.listener.OnCreateRoomListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
 import client.listener.OnIconClickListener;
+import client.listener.OnInviteFriendListener;
 import client.listener.OnLeaveRoomListener;
 import client.listener.OnShowRoomPickerListener;
 import client.listener.UserStatusListener;
@@ -27,13 +29,17 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import client.listener.RoomMemmberListener;
+import client.listener.onCallingListener;
 import client.model.FileInfo;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.Style;
 import javax.swing.text.StyledDocument;
@@ -44,7 +50,8 @@ import javax.swing.text.StyledDocument;
  */
 public class MainChatClientScreen extends javax.swing.JFrame implements
         MessageListener, UserStatusListener, RoomMemmberListener, OnLeaveRoomListener,
-        OnGetHistoryListener, OnGetFileListener, OnIconClickListener {
+        OnGetHistoryListener, OnGetFileListener, OnIconClickListener, OnCreateRoomListener.OnCreateRoomResult,
+        OnCreateRoomListener.OnStartCreateRoom {
 
     private Client client;
     private String roomName;
@@ -74,6 +81,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         client.addOnGetHistoryListener(this);
         client.addOnGetFileListener(this);
         client.getChatHistory(roomName);
+        client.setOnCreateRoomResult(this);
         //icon 
         iconPicker = new IconPicker();
         iconPicker.setOnIconClickListener(this);
@@ -87,6 +95,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private void initComponents() {
 
         jMenu1 = new javax.swing.JMenu();
+        jLabel7 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
@@ -105,14 +114,24 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jMenu2 = new javax.swing.JMenu();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
+        menuInviteFriend = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
+        jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         jMenu1.setText("jMenu1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/mobile-phone.png"))); // NOI18N
+        jLabel7.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel7MouseClicked(evt);
+            }
+        });
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 310, -1, -1));
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/icon/wink.png"))); // NOI18N
         jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -208,6 +227,14 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
 
         jMenu3.setText("Room");
 
+        menuInviteFriend.setText("Invite Friend");
+        menuInviteFriend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuInviteFriendActionPerformed(evt);
+            }
+        });
+        jMenu3.add(menuInviteFriend);
+
         jMenuItem3.setText("Join Room");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -217,7 +244,15 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jMenu3.add(jMenuItem3);
 
         jMenuItem4.setText("Create Room");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem4);
+
+        jMenuItem5.setText("Delete Room");
+        jMenu3.add(jMenuItem5);
 
         jMenuItem1.setText("Leave Room");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -263,13 +298,12 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseClicked
 
         JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-        jfc.setDialogTitle("Choose a directory to save your file: ");
+        jfc.setDialogTitle("Choose a file to send: ");
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
         int returnValue = jfc.showOpenDialog(null);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             if (jfc.getSelectedFile().isFile()) {
-                System.out.println("You selected the directory: " + jfc.getSelectedFile());
                 client.sendFile(jfc.getSelectedFile().getAbsolutePath(), roomName);
             }
         }
@@ -307,6 +341,39 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
         this.iconPicker.setVisible(true);
     }//GEN-LAST:event_jLabel3MouseClicked
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        CreateRoomView createRoom = new CreateRoomView();
+        createRoom.setVisible(true);
+        createRoom.setOnStartCreateRoom(this);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void menuInviteFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuInviteFriendActionPerformed
+        InviteFriendView inviteFriendView = new InviteFriendView();
+        inviteFriendView.setVisible(true);
+        inviteFriendView.setOnStartInviteFriendListener(new OnInviteFriendListener.OnStartInviteFriendListener() {
+            @Override
+            public void onStart(String friend) {
+                client.inviteFriendJoinRoom(friend, roomName);
+            }
+        });
+    }//GEN-LAST:event_menuInviteFriendActionPerformed
+
+    private void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel7MouseClicked
+        VoiceChatView voiceChatView = new VoiceChatView(roomName,this.client);
+        voiceChatView.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                // call client stop calling
+            }
+
+        });
+        voiceChatView.setVisible(true);
+    }//GEN-LAST:event_jLabel7MouseClicked
+
+    public String getRoomName() {
+        return roomName;
+    }
 
     public void setOnShowRoomPickerListener(OnShowRoomPickerListener onShowRoomPickerListener) {
         this.onShowRoomPickerListener = onShowRoomPickerListener;
@@ -443,6 +510,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabelRoomName;
     private javax.swing.JList<String> jList1;
     private javax.swing.JMenu jMenu1;
@@ -453,10 +521,12 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextField jTextChat;
     private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JMenuItem menuInviteFriend;
     // End of variables declaration//GEN-END:variables
 
     @Override
@@ -480,8 +550,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
 
     @Override
-    public void onGetMessageHistorys(List<String> historys,String roomName) {
-        if(!roomName.equals(this.roomName)) return;
+    public void onGetMessageHistorys(List<String> historys, String roomName) {
+        System.out.println("Get room name " + this.roomName + " from  " + roomName);
+        if (!roomName.equals(this.roomName)) {
+            return;
+        }
         inputMessage("Chat history: \n", Color.BLUE);
         for (String item : historys) {
             if (item.startsWith(client.getUserName())) {
@@ -530,6 +603,21 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
                 Logger.getLogger(MainChatClientScreen.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    @Override
+    public void onCreateRoomSuccessful() {
+        JOptionPane.showMessageDialog(this, "Create new room successfully");
+    }
+
+    @Override
+    public void onCreateRoomFail() {
+        JOptionPane.showMessageDialog(this, "Create new room faild");
+    }
+
+    @Override
+    public void onStart(String roomName, String roomType, String pass) {
+        this.client.createRoom(roomName, roomType, pass);
     }
 
 }

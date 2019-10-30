@@ -3,13 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/view/IconPicker.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/controller/Client.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/view/RoomPicker.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/server/controller/ServerWorker.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/listener/MessageListener.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/controller/IconManager.java</file>
-            <file>file:/F:/Networking/MultiClientChatApp/src/client/view/MainChatClientScreen.java</file>
+            <file>file:/F:/Networking/MultiClientChatApp/src/server/controller/Server.java</file>
+            <file>file:/F:/Networking/MultiClientChatApp/src/server/controller/RoomManager.java</file>
         </group>
     </open-files>
 </project-private>
