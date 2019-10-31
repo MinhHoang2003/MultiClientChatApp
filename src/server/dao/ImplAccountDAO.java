@@ -3,19 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dao;
+package server.dao;
 
 import connectDB.ConnectionDB;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import server.model.Account;
 
 /**
  *
  * @author hoain
  */
-public class ImplAccountDAO implements AccountDAO<Account> {
+public class ImplAccountDAO implements AccountDAO {
 
     @Override
     public boolean checkLogin(String username, String password) {
@@ -34,7 +35,7 @@ public class ImplAccountDAO implements AccountDAO<Account> {
             if (rs.next()) {
                 c = true;
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e);
             c = false;
         } finally {
@@ -61,7 +62,7 @@ public class ImplAccountDAO implements AccountDAO<Account> {
                 a.setUserName(rs.getString("UserName"));
                 a.setPassword("");
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e);
             return null;
         } finally {
@@ -84,7 +85,7 @@ public class ImplAccountDAO implements AccountDAO<Account> {
             callSt.setString(1, username);
             callSt.setString(2, password);
             callSt.executeUpdate();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e);
             c = false;
         } finally {
@@ -104,13 +105,12 @@ public class ImplAccountDAO implements AccountDAO<Account> {
         try {
             con = ConnectionDB.openConnection();
             callSt = con.prepareCall("{call checkExitAccount(?)}");
-            callSt.setString(1, username);          
+            callSt.setString(1, username);
             ResultSet rs = callSt.executeQuery();
             if (rs.next()) {
                 c = true;
             }
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (SQLException e) {
             c = false;
         } finally {
             ConnectionDB.closeConnection(con, callSt);

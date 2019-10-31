@@ -5,7 +5,6 @@
  */
 package server.controller;
 
-import client.controller.Client;
 import server.model.RoomStatus;
 import server.model.Account;
 import server.model.Room;
@@ -15,23 +14,18 @@ import client.listener.OnSendAudioListener;
 import client.model.FileInfo;
 import client.model.Message;
 import client.model.RoomClientSide;
-import client.view.MainVoiceCall;
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
-import dao.ImplRoomDAO;
+import server.dao.ImplRoomDAO;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.TargetDataLine;
 
 /**
  *
@@ -45,7 +39,7 @@ public class ServerWorker extends Thread {
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
     private OnSendAudioListener listener;
-    
+
     ServerWorker(Server server, Socket clientsocket) {
         this.clientSocket = clientsocket;
         this.server = server;
@@ -80,7 +74,7 @@ public class ServerWorker extends Thread {
         while (true) {
 
             System.out.println("Get message ...");
-            
+
             message = (Message) inputStream.readObject();
             if (message != null) {
                 Command cmd = message.getCmd();
@@ -136,6 +130,9 @@ public class ServerWorker extends Thread {
                         message = null;
                         listener.startUDPThread(messageCall);
                         break;
+                    case DELETE:
+                        handlerDeleteRoom(message);
+                        break;
                     default:
                         String msg = "unknown " + cmd + "\n";
                         System.out.println(msg);
@@ -154,7 +151,6 @@ public class ServerWorker extends Thread {
             String msg = "ok login\n";
             Message response = new Message(Command.RESPONSE, msg, "System", this.getAcount().getUserName());
             this.acount.setStatus(AccountStatus.ONLINE);
-            // this.server.addWorker(this, "General");
             System.out.println("login " + this.acount.getUserName());
             outputStream.writeObject(response);
         } else {
@@ -299,7 +295,7 @@ public class ServerWorker extends Thread {
         String userName = message.getReceiver();
         Room room = server.getRoomManager().getRoomByName(roomName);
         if (room != null) {
-            
+
             List<String> historys = room.getChatsHistory();
             Message<List<String>> reponse = new Message<>(Command.HISTORY, historys, roomName, userName);
             send(reponse);
@@ -328,7 +324,7 @@ public class ServerWorker extends Thread {
     public void setListener(OnSendAudioListener listener) {
         this.listener = listener;
     }
-    
+
     private void handlerCreateRoom(Message message) throws IOException {
         String creatRoomMessage = (String) message.getBody();
         String[] tokens = creatRoomMessage.split("\\|", 3);
@@ -407,6 +403,23 @@ public class ServerWorker extends Thread {
         if (room != null) {
             Message<String> joinRoom = new Message<>(Command.JOIN, room.getPassword(), from, roomName);
             handlerJoinRoom(joinRoom);
+        }
+    }
+
+    private void handlerDeleteRoom(Message message) throws IOException {
+        String user = message.getFrom();
+        Message<String> deleteResponse = null;
+        String roomName = message.getReceiver();
+        RoomManager manager = server.getRoomManager();
+        Room room = manager.getRoomByName(roomName);
+        if (room != null && manager.isOwner(roomName, user)) {
+            room.sendMessageToRoomate(Command.DELETE, roomName, "success");
+            deleteResponse = new Message<>(Command.DELETE, "success", roomName, user);
+            send(deleteResponse);
+            manager.deleteRoom(roomName);
+        } else {
+            deleteResponse = new Message<>(Command.DELETE, "fail", roomName, user);
+            send(deleteResponse);
         }
     }
 }

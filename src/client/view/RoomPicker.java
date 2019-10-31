@@ -115,7 +115,7 @@ public class RoomPicker extends javax.swing.JFrame implements
         });
         jScrollPane1.setViewportView(jListRooms);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 310, 430));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 310, 410));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/room_backroudn_dark.jpg"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 310, 40));
@@ -172,8 +172,7 @@ public class RoomPicker extends javax.swing.JFrame implements
                 System.out.println("ChatViews size: " + chatViews.size());
                 System.out.println("Frame: " + newRoom.getTitle());
                 if (chatViews.isEmpty()) {
-                    RoomPicker.this.setVisible(true);
-                    RoomPicker.this.jListRooms.clearSelection();
+                    onShowRoomPikcer();
                 }
             }
         });
@@ -217,9 +216,9 @@ public class RoomPicker extends javax.swing.JFrame implements
         // 0=ok, 2=cancel
         String reponseMessage = null;
         if (input == 0) {
-            reponseMessage = "accept "+ inviter;
+            reponseMessage = "accept " + inviter;
         } else {
-            reponseMessage = "refuse "+ inviter;
+            reponseMessage = "refuse " + inviter;
         }
         client.responseInvite(reponseMessage, rommName);
 

@@ -6,25 +6,34 @@
 package client.view;
 
 import client.controller.Client;
-import client.listener.onCallingListener;
 
 /**
  *
  * @author hoang
  */
 public class VoiceChatView extends javax.swing.JFrame {
+    
+    public static int MAKE_A_CALL = 1;
+    public static int RECEIVE_A_CALL = 2;
 
-    private Client client;
-    private String roomName;
-    public VoiceChatView(String roomName, Client client) {
+    private final Client client;
+    private final String roomName;
+    private final int callState;
+
+    public VoiceChatView(String roomName, Client client,int callState) {
         initComponents();
         this.roomName = roomName;
         this.room.setText(roomName);
-        onCalling.setEnabled(true);
         this.client = client;
-        stop.setEnabled(false);
+        this.callState = callState;
+        if(callState == MAKE_A_CALL){
+            client.makeVoiceCall(roomName);
+        }else {
+            onCalling.setEnabled(false);
+        }
+        room.setText(roomName);
     }
- 
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -105,11 +114,12 @@ public class VoiceChatView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void stopMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_stopMouseClicked
-        // stop calling here
+        client.stopVoiceChatThread();
+        this.dispose();
     }//GEN-LAST:event_stopMouseClicked
 
     private void onCallingMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onCallingMouseClicked
-        // start calling here
+        client.startVoiceChatThread();
     }//GEN-LAST:event_onCallingMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -119,5 +129,5 @@ public class VoiceChatView extends javax.swing.JFrame {
     private javax.swing.JLabel room;
     private javax.swing.JLabel stop;
     // End of variables declaration//GEN-END:variables
-    
+
 }

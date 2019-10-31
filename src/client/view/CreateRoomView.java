@@ -19,11 +19,8 @@ public class CreateRoomView extends javax.swing.JFrame {
     public CreateRoomView() {
         initComponents();
         showPassowrdField();
-        roomType.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                showPassowrdField();
-            }
+        roomType.addItemListener((ItemEvent e) -> {
+            showPassowrdField();
         });
     }
 
@@ -81,6 +78,11 @@ public class CreateRoomView extends javax.swing.JFrame {
 
         btnCancel.setFont(new java.awt.Font("Berlin Sans FB Demi", 0, 12)); // NOI18N
         btnCancel.setText("Cancel");
+        btnCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelActionPerformed(evt);
+            }
+        });
         getContentPane().add(btnCancel, new org.netbeans.lib.awtextra.AbsoluteConstraints(329, 191, -1, -1));
 
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/room_backroudn_dark.jpg"))); // NOI18N
@@ -103,7 +105,12 @@ public class CreateRoomView extends javax.swing.JFrame {
             return;
         }
         this.onStartCreateRoom.onStart(roomName, roomType, pass);
+        this.dispose();
     }//GEN-LAST:event_btnCreateActionPerformed
+
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_btnCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;

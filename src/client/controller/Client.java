@@ -9,6 +9,7 @@ import client.model.Message;
 import client.listener.MessageListener;
 import client.listener.OnGetCallListener;
 import client.listener.OnCreateRoomListener;
+import client.listener.OnDeleteRoomListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
 import client.listener.OnGetRoomsListener;
@@ -65,7 +66,7 @@ public class Client {
     private DatagramSocket din;
     private DatagramPacket DpSend;
     private DatagramPacket DpReceive;
-    private byte byte_read[] = new byte [512];
+    private byte byte_read[] = new byte[512];
     Thread voiceCall;
     public static boolean flag = true;
 
@@ -81,6 +82,7 @@ public class Client {
     private final List<OnGetCallListener> onGetCallListeners = new ArrayList<>();
     private OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult;
     private OnInviteFriendListener onInviteFriendListener;
+    private List<OnDeleteRoomListener> onDeleteRoomListeners = new ArrayList<>();
 
     private Client(LoginUI clientView, String serverName, int port) {
         this.serverName = serverName;
@@ -95,7 +97,7 @@ public class Client {
         }
         return client;
     }
-    
+
     public static AudioFormat getAudioFormat() {
         float sampleRate = 8000.0F;
         int sampleSizeInbits = 16;
@@ -104,7 +106,7 @@ public class Client {
         boolean bigEndian = false;
         return new AudioFormat(sampleRate, sampleSizeInbits, channel, signed, bigEndian);
     }
-    
+
     public void init_audio_in() {
         try {
             AudioFormat format = getAudioFormat();
@@ -120,16 +122,16 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void init_audio_out() {
         try {
             AudioFormat format = getAudioFormat();
             DataLine.Info info_out = new DataLine.Info(SourceDataLine.class, format);
-            if(!AudioSystem.isLineSupported(info_out)){
+            if (!AudioSystem.isLineSupported(info_out)) {
                 System.out.println("Line for out not supported");
                 System.exit(0);
             }
-            audio_out = (SourceDataLine)AudioSystem.getLine(info_out);
+            audio_out = (SourceDataLine) AudioSystem.getLine(info_out);
             audio_out.open(format);
             audio_out.start();
         } catch (LineUnavailableException ex) {
@@ -176,11 +178,11 @@ public class Client {
     public void addOnGetFileListener(OnGetFileListener listener) {
         this.onGetFileListeners.add(listener);
     }
-    
+
     public void addOnGetCallListener(OnGetCallListener listener) {
         this.onGetCallListeners.add(listener);
     }
-    
+
     public void setOnCreateRoomResult(OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult) {
         this.onCreateRoomResult = onCreateRoomResult;
     }
@@ -188,7 +190,11 @@ public class Client {
     public void setOnInviteFriendListener(OnInviteFriendListener onInviteFriendListener) {
         this.onInviteFriendListener = onInviteFriendListener;
     }
-    
+
+    public void addOnDeleteRoomListener(OnDeleteRoomListener listener) {
+        this.onDeleteRoomListeners.add(listener);
+    }
+
     public boolean connection() {
         try {
             this.socket = new Socket(serverName, serverPort);
@@ -235,7 +241,7 @@ public class Client {
         try {
             while (true) {
                 message = (Message) serverIn.readObject();
-                
+
                 if (message != null) {
                     Command cmd = message.getCmd();
                     switch (cmd) {
@@ -295,49 +301,59 @@ public class Client {
                         case VOICECALL:
                             String receiveSignal = (String) message.getBody();
                             System.out.println("call listener");
-                            for(OnGetCallListener listener : onGetCallListeners){
+                            for (OnGetCallListener listener : onGetCallListeners) {
                                 listener.onGetCall(receiveSignal, message.getFrom());
                             }
-                        break;
-                    case HISTORY:
-                        List<String> historys = (List<String>) message.getBody();
-                        for (OnGetHistoryListener listener : onGetHistoryListeners) {
-                            listener.onGetMessageHistorys(historys, message.getFrom());
+                            break;
+                        case HISTORY:
+                            List<String> historys = (List<String>) message.getBody();
+                            for (OnGetHistoryListener listener : onGetHistoryListeners) {
+                                listener.onGetMessageHistorys(historys, message.getFrom());
+                            }
+                            break;
+                        case FILE:
+                            FileInfo file = (FileInfo) message.getBody();
+                            System.out.println("file listener");
+                            for (OnGetFileListener listener : onGetFileListeners) {
+                                listener.onGetFile(file, message.getFrom());
+                            }
+                            break;
+                        case ICON: {
+                            for (MessageListener listener : this.messageListeners) {
+                                listener.onMessageListener(message);
+                            }
+                            break;
                         }
-                        break;
-                    case FILE: 
-                        FileInfo file = (FileInfo) message.getBody();
-                        System.out.println("file listener");
-                        for (OnGetFileListener listener : onGetFileListeners) {
-                            listener.onGetFile(file, message.getFrom());
-                        }
-                        break;
-                    case ICON: {
-                        for (MessageListener listener : this.messageListeners) {
-                            listener.onMessageListener(message);
-                        }
-                        break;
-                    }
-                    case CREATE:
-                        String result = (String) message.getBody();
-                        if (result.equalsIgnoreCase("Done")) {
-                            onCreateRoomResult.onCreateRoomSuccessful();
-                        } else {
-                            onCreateRoomResult.onCreateRoomFail();
-                        }
-                        break;
-                    case INVITE:
-                        String messBody = (String) message.getBody();
-                        String room = message.getFrom();
-                        if (messBody.startsWith("Fail")) {
-                            onInviteFriendListener.onFailToInviateFriend(room, messBody);
-                        } else {
-                            onInviteFriendListener.onShowInviteMessage("",room,messBody);
-                        }
-                        break;
+                        case CREATE:
+                            String result = (String) message.getBody();
+                            if (result.equalsIgnoreCase("Done")) {
+                                onCreateRoomResult.onCreateRoomSuccessful();
+                            } else {
+                                onCreateRoomResult.onCreateRoomFail();
+                            }
+                            break;
+                        case INVITE:
+                            String messBody = (String) message.getBody();
+                            String room = message.getFrom();
+                            if (messBody.startsWith("Fail")) {
+                                onInviteFriendListener.onFailToInviateFriend(room, messBody);
+                            } else {
+                                onInviteFriendListener.onShowInviteMessage("", room, messBody);
+                            }
+                            break;
+                        case DELETE:
+                            String response = (String) message.getBody();
+                            for (OnDeleteRoomListener listener : this.onDeleteRoomListeners) {
+                                if (response.startsWith("success")) {
+                                    listener.onDeleteSuccessful(message);
+                                } else if (message.getReceiver().equals(userName)) {
+                                    listener.onDeleteFail(message);
+                                }
+                            }
+                            break;
                     }
                 }
-                
+
             }
         } catch (IOException ex) {
             try {
@@ -463,7 +479,7 @@ public class Client {
         }
     }
 
-     public void makeVoiceCall(String roomName) {
+    public void makeVoiceCall(String roomName) {
         try {
             Message<String> message = new Message(Command.VOICECALL, "", userName, roomName);
             serverOut.writeObject(message);
@@ -471,24 +487,24 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void sendVoiceCall() {
-        try { 
+        try {
             int read = audio_in.read(byte_read, 0, byte_read.length);
             DpSend = new DatagramPacket(byte_read, byte_read.length, InetAddress.getLocalHost(), 12345);
             dout.send(DpSend);
-            byte_read = new byte [512];
+            byte_read = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void receiveVoiceCall() {
         try {
             DpReceive = new DatagramPacket(byte_read, byte_read.length);
             din.receive(DpReceive);
             audio_out.write(byte_read, 0, byte_read.length);
-            byte_read = new byte [512];
+            byte_read = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -508,23 +524,23 @@ public class Client {
 
     public void inviteFriendJoinRoom(String friendName, String roomName) {
         try {
-            String inviteBody = "invite "+friendName;
+            String inviteBody = "invite " + friendName;
             Message<String> invite = new Message<>(Command.INVITE, inviteBody, client.getUserName(), roomName);
             serverOut.writeObject(invite);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void responseInvite(String responseBody,String roomName){
+
+    public void responseInvite(String responseBody, String roomName) {
         try {
-            Message<String> response = new Message<>(Command.INVITE,responseBody,this.getUserName(),roomName);
+            Message<String> response = new Message<>(Command.INVITE, responseBody, this.getUserName(), roomName);
             serverOut.writeObject(response);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void initSocketIncome() {
         try {
             din = new DatagramSocket(12346);
@@ -532,7 +548,7 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void initSocketOutcome() {
         try {
             dout = new DatagramSocket();
@@ -540,16 +556,16 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void startVoiceChatThread(){
+
+    public void startVoiceChatThread() {
         initSocketIncome();
         initSocketOutcome();
-        
+
         this.init_audio_in();
         this.init_audio_out();
-        
+
         Client.flag = true;
-        
+
         voiceCall = new Thread() {
             @Override
             public void run() {
@@ -559,14 +575,22 @@ public class Client {
                 }
             }
         };
-          
+
         voiceCall.start();
     }
-    
+
     public void stopVoiceChatThread() {
         Client.flag = false;
-        
         audio_out.close();
         audio_in.close();
     }
- }
+
+    public void deleteRoom(String roomName) {
+        try {
+            Message<String> deleteMessage = new Message<>(Command.DELETE, "", userName, roomName);
+            serverOut.writeObject(deleteMessage);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}

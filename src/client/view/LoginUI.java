@@ -88,7 +88,7 @@ public class LoginUI extends javax.swing.JFrame {
                 jButtonLoginActionPerformed(evt);
             }
         });
-        getContentPane().add(jButtonLogin, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 310, 90, 30));
+        getContentPane().add(jButtonLogin, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 270, 90, 30));
 
         jButtonRegister.setBackground(new java.awt.Color(0, 153, 153));
         jButtonRegister.setForeground(new java.awt.Color(255, 255, 255));
@@ -99,7 +99,7 @@ public class LoginUI extends javax.swing.JFrame {
                 jButtonRegisterActionPerformed(evt);
             }
         });
-        getContentPane().add(jButtonRegister, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 310, 80, 30));
+        getContentPane().add(jButtonRegister, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 270, 80, 30));
 
         jTextUserName.setBackground(new java.awt.Color(51, 51, 51));
         jTextUserName.setForeground(new java.awt.Color(255, 255, 255));

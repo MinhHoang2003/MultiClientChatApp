@@ -6,11 +6,12 @@
 package server.controller;
 
 import client.model.RoomClientSide;
-import dao.ImplRoomDAO;
-import dao.RoomDAO;
+import server.dao.ImplRoomDAO;
+import server.dao.RoomDAO;
 import server.model.RoomStatus;
 import server.model.Room;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -37,16 +38,6 @@ public class RoomManager {
         for (RoomClientSide l : listRoom) {
             rooms.add(new Room(l.getName(), l.getRoomStatus()));
         }
-
-//        rooms.add(new Room("General", RoomStatus.PUBLIC));
-//        rooms.add(new Room("develop", RoomStatus.PUBLIC));
-//        Room room = new Room("test", RoomStatus.PRIVATE);
-//        List<String> historys = new ArrayList<>();
-//        historys.add("nam : hello");
-//        room.setChatsHistory(historys);
-//
-//        room.setPassword("hello");
-//        rooms.add(room);
     }
 
     public ArrayList<Room> getRooms() {
@@ -78,11 +69,27 @@ public class RoomManager {
 
     public void createNewRoom(Room room, String owner) {
         System.out.println("Create new room " + room.getName());
+        this.rooms.add(room);
         if (room.getStatus() == RoomStatus.PRIVATE) {
             roomDAO.addRoom(room.getName(), room.getPassword(), 0, owner);
         } else {
             roomDAO.addRoom(room.getName(), room.getPassword(), 1, owner);
         }
-        this.rooms.add(room);
+    }
+
+    public void deleteRoom(String roomName) {
+        Iterator<Room> iterator = rooms.iterator();
+        while (iterator.hasNext()) {
+            Room room = iterator.next();
+            if (room.getName().equals(roomName)) {
+                iterator.remove();
+                roomDAO.deleteRoomByName(roomName);
+                System.out.println("Remove room : " + roomName);
+            }
+        }
+    }
+
+    public boolean isOwner(String roomName, String user) {
+        return roomDAO.checkOwner(roomName, user);
     }
 }

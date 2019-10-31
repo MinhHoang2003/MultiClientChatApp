@@ -3,21 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dao;
+package server.dao;
 
-import java.util.List;
+import server.model.Account;
 
 /**
  *
  * @author hoang
  */
-public interface AccountDAO<T> {
+public interface AccountDAO {
+
     boolean checkLogin(String username, String password);
-    T getAccount(String username, String password);
+
+    Account getAccount(String username, String password);
+
     boolean registerAccount(String username, String password);
+
     boolean checkExistAccount(String username);
-    
-//    boolean insert(T data);
-//    boolean update(T data);
-//    boolean delete(int id);
+
 }

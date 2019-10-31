@@ -3,13 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dao;
+package server.dao;
 
 import client.model.RoomClientSide;
 import connectDB.ConnectionDB;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import server.model.MessInRoom;
@@ -33,7 +34,7 @@ public class ImplRoomDAO implements RoomDAO {
             callSt.setString(2, username);
             callSt.setString(3, content);
             callSt.executeUpdate();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e);
             c = false;
         } finally {
@@ -63,7 +64,7 @@ public class ImplRoomDAO implements RoomDAO {
                 m.setContent(rs.getString("Content"));
                 listMess.add(m);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             return null;
         } finally {
             ConnectionDB.closeConnection(con, callSt);
@@ -90,7 +91,7 @@ public class ImplRoomDAO implements RoomDAO {
                 }
                 listRoom.add(r);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             return null;
         } finally {
             ConnectionDB.closeConnection(con, callSt);
@@ -111,7 +112,7 @@ public class ImplRoomDAO implements RoomDAO {
             while (rs.next()) {
                 check = true;
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             return false;
         } finally {
             ConnectionDB.closeConnection(con, callSt);
@@ -177,8 +178,7 @@ public class ImplRoomDAO implements RoomDAO {
             callSt.setInt(3, status);
             callSt.setString(4, owner);
             callSt.executeUpdate();
-        } catch (Exception e) {
-//            System.out.println(e);
+        } catch (SQLException e) {
             c = false;
         } finally {
             ConnectionDB.closeConnection(con, callSt);
@@ -203,7 +203,7 @@ public class ImplRoomDAO implements RoomDAO {
                     room = new RoomClientSide(rs.getString("RoomName"), RoomStatus.PRIVATE);
                 }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             return null;
         } finally {
             ConnectionDB.closeConnection(con, callSt);
@@ -220,13 +220,12 @@ public class ImplRoomDAO implements RoomDAO {
             con = ConnectionDB.openConnection();
             callSt = con.prepareCall("{call checkPassword(?,?)}");
             callSt.setString(1, roomName);
-            callSt.setString(2, password);          
+            callSt.setString(2, password);
             ResultSet rs = callSt.executeQuery();
             if (rs.next()) {
                 c = true;
             }
-        } catch (Exception e) {
-//            System.out.println(e);
+        } catch (SQLException e) {
             c = false;
         } finally {
             ConnectionDB.closeConnection(con, callSt);

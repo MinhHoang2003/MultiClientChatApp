@@ -5,9 +5,10 @@
  */
 package server.controller;
 
-import dao.ImplAccountDAO;
+import server.dao.ImplAccountDAO;
 import server.model.Account;
 import java.util.ArrayList;
+import server.dao.AccountDAO;
 
 /**
  *
@@ -17,15 +18,11 @@ public class AccountManager {
 
     public static AccountManager accountManager;
     private ArrayList<Account> accounts;
-    private ImplAccountDAO implAccountDAO;
+    private AccountDAO implAccountDAO;
 
     private AccountManager() {
         implAccountDAO = new ImplAccountDAO();
-        this.accounts = accounts;
         accounts = new ArrayList<>();
-//        accounts.add(new Account("guest", "guest"));
-//        accounts.add(new Account("hoang", "hoang"));
-//        accounts.add(new Account("nam", "nam"));
     }
 
     public static AccountManager getInstance() {
@@ -43,36 +40,13 @@ public class AccountManager {
         } else {
             return -1;
         }
-//        for (Account account : accounts) {
-//            if (account.isAccount(userName, password)) {
-//                return accounts.indexOf(account);
-//            }
-//        }
-
     }
 
-//    public Account getAccount(int index) {
-//        return accounts.get(index);
-//    }
     public Account getAccount(String username, String password) {
         return implAccountDAO.getAccount(username, password);
     }
 
-//    private boolean isValidAccount(String user, String password) {
-//        for (Account account : accounts) {
-//            if (account.getUserName().equals(user) || password.length() < 1) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
     private boolean isValidAccount(String user, String password) { // check exist account
-        // neu chua co thi return true
-//        for (Account account : accounts) {
-//            if (account.getUserName().equals(user) || password.length() < 1) {
-//                return false;
-//            }
-//        }
         if (user.length() < 1 || password.length() < 1) {
             return false;
         }
@@ -83,18 +57,8 @@ public class AccountManager {
         return true;
     }
 
-//    public boolean registerAccount(String userName, String password) {
-//        if (isValidAccount(userName, password)) {
-//            accounts.add(new Account(userName, password));
-//            System.out.println("----------> add username " + userName + "\n");
-//            return true;
-//        }
-//        return false;
-//    }
     public boolean registerAccount(String userName, String password) {
         if (isValidAccount(userName, password)) {
-//            accounts.add(new Account(userName, password));
-            //add new account
             boolean c = implAccountDAO.registerAccount(userName, password);
             if (!c) {
                 return false;
@@ -105,12 +69,7 @@ public class AccountManager {
         return false;
     }
 
-    public boolean isValidUserName(String user) {
-        for (Account account : accounts) {
-            if (account.getUserName().equals(user)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isValidUserName(String user) {// need to revise
+        return implAccountDAO.checkExistAccount(user);
     }
 }

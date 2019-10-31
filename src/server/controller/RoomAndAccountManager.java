@@ -59,7 +59,6 @@ public class RoomAndAccountManager {
             }
         }
     }
-    
 
     public List<String> getRoomsByUser(String user) {
         return roomAndAccount.get(user);

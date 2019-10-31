@@ -12,6 +12,7 @@ import client.model.Message;
 import client.listener.MessageListener;
 import client.listener.OnGetCallListener;
 import client.listener.OnCreateRoomListener;
+import client.listener.OnDeleteRoomListener;
 import client.listener.OnGetFileListener;
 import client.listener.OnGetHistoryListener;
 import client.listener.OnIconClickListener;
@@ -49,11 +50,10 @@ import javax.swing.text.StyledDocument;
  *
  * @author hoang
  */
-
 public class MainChatClientScreen extends javax.swing.JFrame implements
         MessageListener, UserStatusListener, RoomMemmberListener, OnLeaveRoomListener,
         OnGetHistoryListener, OnGetFileListener, OnIconClickListener, OnCreateRoomListener.OnCreateRoomResult,
-        OnCreateRoomListener.OnStartCreateRoom, OnGetCallListener {
+        OnCreateRoomListener.OnStartCreateRoom, OnGetCallListener, OnDeleteRoomListener {
 
     private Client client;
     private String roomName;
@@ -85,6 +85,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         client.addOnGetCallListener(this);
         client.getChatHistory(roomName);
         client.setOnCreateRoomResult(this);
+        client.addOnDeleteRoomListener(this);
         //icon 
         iconPicker = new IconPicker();
         iconPicker.setOnIconClickListener(this);
@@ -135,7 +136,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
                 jLabel7MouseClicked(evt);
             }
         });
-        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 310, -1, -1));
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 310, -1, 30));
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/icon/wink.png"))); // NOI18N
         jLabel3.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -196,13 +197,14 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jLabelRoomName.setText("RoomName");
         getContentPane().add(jLabelRoomName, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 10, -1, -1));
 
-        btn_voiceCall.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/icons8-call-24.png"))); // NOI18N
+        btn_voiceCall.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/mobile-phone.png"))); // NOI18N
+        btn_voiceCall.setBorder(null);
         btn_voiceCall.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_voiceCallActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_voiceCall, new org.netbeans.lib.awtextra.AbsoluteConstraints(509, 315, 70, 30));
+        getContentPane().add(btn_voiceCall, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 310, 30, 30));
 
         jList1.setBorder(javax.swing.BorderFactory.createTitledBorder("Members"));
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
@@ -264,6 +266,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jMenu3.add(jMenuItem4);
 
         jMenuItem5.setText("Delete Room");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem5);
 
         jMenuItem1.setText("Leave Room");
@@ -351,8 +358,8 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void btn_voiceCallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_voiceCallActionPerformed
-        handleSenderCall();
-        client.makeVoiceCall(roomName);
+//        handleSenderCall();
+//        client.makeVoiceCall(roomName);
     }//GEN-LAST:event_btn_voiceCallActionPerformed
 
     private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
@@ -377,7 +384,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }//GEN-LAST:event_menuInviteFriendActionPerformed
 
     private void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel7MouseClicked
-        VoiceChatView voiceChatView = new VoiceChatView(roomName,this.client);
+        VoiceChatView voiceChatView = new VoiceChatView(roomName, this.client, VoiceChatView.MAKE_A_CALL);
         voiceChatView.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -387,6 +394,10 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         });
         voiceChatView.setVisible(true);
     }//GEN-LAST:event_jLabel7MouseClicked
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        client.deleteRoom(roomName);
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     public String getRoomName() {
         return roomName;
@@ -457,30 +468,29 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
 
     }
-    
+
     public void handleReceiverCall() {
         Object[] choices = {"Decline", "Accept"};
         Object defaultChoice = choices[1];
         int input = JOptionPane.showOptionDialog(this,
-             "You got a call",
-             "Voice call",
-             JOptionPane.YES_NO_OPTION,
-             JOptionPane.INFORMATION_MESSAGE,
-             null,
-             choices,
-             defaultChoice);
-        
+                "You got a call",
+                "Voice call",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                choices,
+                defaultChoice);
+
         if (input == 1) {
-            MainVoiceCall mvc = new MainVoiceCall(client);
-            mvc.setVisible(true);
+            VoiceChatView voiceChatView = new VoiceChatView(roomName, client, VoiceChatView.RECEIVE_A_CALL);
+            voiceChatView.setVisible(true);
         }
     }
-    
-    public void handleSenderCall() {
-        MainVoiceCall mvc = new MainVoiceCall(client);
-        mvc.setVisible(true);
-    }
-    
+
+//    public void handleSenderCall() {
+//        MainVoiceCall mvc = new MainVoiceCall(client);
+//        mvc.setVisible(true);
+//    }
     @Override
     public void onMessageListener(Message message) {
         try {
@@ -630,6 +640,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
     }
 
+    @Override
     public void onIconClicked(String name) {
         URL iconPath = this.iconManager.getIconPath(name);
         System.out.println(iconPath.toString());
@@ -666,5 +677,20 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     @Override
     public void onStart(String roomName, String roomType, String pass) {
         this.client.createRoom(roomName, roomType, pass);
+    }
+    @Override
+    public void onDeleteSuccessful(Message message) {
+        String room = message.getFrom();
+        if (room.equals(this.roomName)) {
+            JOptionPane.showMessageDialog(this,roomName + " has been delete by owner.Exit now!!!", "Delete Room", JOptionPane.WARNING_MESSAGE);
+            this.dispose();
+        }
+    }
+    @Override
+    public void onDeleteFail(Message message) {
+        String room = message.getFrom();
+        if (room.equals(this.roomName)) {
+            JOptionPane.showMessageDialog(this, (String) message.getBody() + " to delete " + roomName);
+        }
     }
 }

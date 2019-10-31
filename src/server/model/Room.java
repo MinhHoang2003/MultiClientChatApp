@@ -8,7 +8,7 @@ package server.model;
 import client.controller.Command;
 import client.model.FileInfo;
 import client.model.Message;
-import dao.ImplRoomDAO;
+import server.dao.ImplRoomDAO;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.ArrayList;
