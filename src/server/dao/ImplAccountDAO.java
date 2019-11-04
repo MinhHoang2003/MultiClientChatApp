@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import server.model.Account;
 
+import org.mindrot.jbcrypt.BCrypt; // Lib hash password
+
 /**
  *
  * @author hoain
@@ -19,7 +21,7 @@ import server.model.Account;
 public class ImplAccountDAO implements AccountDAO {
 
     @Override
-    public boolean checkLogin(String username, String password) {
+    public boolean checkLogin(String username, String password) { // using login
         boolean c = false;
         Connection con = null;
         CallableStatement callSt = null;
@@ -28,12 +30,18 @@ public class ImplAccountDAO implements AccountDAO {
         }
         try {
             con = ConnectionDB.openConnection();
-            callSt = con.prepareCall("{call getAccount(?,?)}");
+            callSt = con.prepareCall("{call getAccount(?)}");
             callSt.setString(1, username);
-            callSt.setString(2, password);
+//            callSt.setString(2, password);
             ResultSet rs = callSt.executeQuery();
             if (rs.next()) {
-                c = true;
+                String hash = rs.getString("Password");
+                boolean valuate = BCrypt.checkpw(password, hash);
+                if (valuate) {
+                    c = true;
+                } else {
+                    c = false;
+                }
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -54,9 +62,9 @@ public class ImplAccountDAO implements AccountDAO {
         }
         try {
             con = ConnectionDB.openConnection();
-            callSt = con.prepareCall("{call getAccount(?,?)}");
+            callSt = con.prepareCall("{call getAccount(?)}");
             callSt.setString(1, username);
-            callSt.setString(2, password);
+//            callSt.setString(2, password);
             ResultSet rs = callSt.executeQuery();
             if (rs.next()) {
                 a.setUserName(rs.getString("UserName"));
@@ -80,10 +88,13 @@ public class ImplAccountDAO implements AccountDAO {
             return false;
         }
         try {
+            // hash pass
+            String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
+
             con = ConnectionDB.openConnection();
             callSt = con.prepareCall("{call insertAccount(?,?)}");
             callSt.setString(1, username);
-            callSt.setString(2, password);
+            callSt.setString(2, hash);
             callSt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e);
