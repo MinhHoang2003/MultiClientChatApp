@@ -97,9 +97,7 @@ public class MainVoiceCall extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void cancelCallMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cancelCallMouseClicked
-        client.stopVoiceChatThread();
-        this.setVisible(false);
-        this.dispose();
+        
     }//GEN-LAST:event_cancelCallMouseClicked
 
     

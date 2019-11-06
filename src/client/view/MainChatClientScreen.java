@@ -109,7 +109,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabelRoomName = new javax.swing.JLabel();
-        btn_voiceCall = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -169,7 +168,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         });
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 320, 30, 30));
 
-        jTextChat.setOpaque(false);
         jTextChat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextChatActionPerformed(evt);
@@ -196,15 +194,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         jLabelRoomName.setForeground(new java.awt.Color(255, 255, 255));
         jLabelRoomName.setText("RoomName");
         getContentPane().add(jLabelRoomName, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 10, -1, -1));
-
-        btn_voiceCall.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/mobile-phone.png"))); // NOI18N
-        btn_voiceCall.setBorder(null);
-        btn_voiceCall.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_voiceCallActionPerformed(evt);
-            }
-        });
-        getContentPane().add(btn_voiceCall, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 310, 30, 30));
 
         jList1.setBorder(javax.swing.BorderFactory.createTitledBorder("Members"));
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
@@ -357,11 +346,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
-    private void btn_voiceCallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_voiceCallActionPerformed
-//        handleSenderCall();
-//        client.makeVoiceCall(roomName);
-    }//GEN-LAST:event_btn_voiceCallActionPerformed
-
     private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
         this.iconPicker.setVisible(true);
     }//GEN-LAST:event_jLabel3MouseClicked
@@ -388,7 +372,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         voiceChatView.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                // call client stop calling
+                client.stopVoiceChatThread();
             }
 
         });
@@ -487,10 +471,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
         }
     }
 
-//    public void handleSenderCall() {
-//        MainVoiceCall mvc = new MainVoiceCall(client);
-//        mvc.setVisible(true);
-//    }
     @Override
     public void onMessageListener(Message message) {
         try {
@@ -553,7 +533,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel background;
-    private javax.swing.JButton btn_voiceCall;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

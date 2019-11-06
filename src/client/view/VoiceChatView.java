@@ -26,10 +26,11 @@ public class VoiceChatView extends javax.swing.JFrame {
         this.room.setText(roomName);
         this.client = client;
         this.callState = callState;
-        if(callState == MAKE_A_CALL){
-            client.makeVoiceCall(roomName);
-        }else {
+        if(callState == MAKE_A_CALL) {
+            System.out.println("go here");
             onCalling.setEnabled(false);
+        } else {
+            onCalling.setEnabled(true);
         }
         room.setText(roomName);
     }

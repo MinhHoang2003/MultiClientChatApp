@@ -46,6 +46,7 @@ import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import server.controller.Server;
 import server.controller.ServerWorker;
+import server.controller.UDPVoiceCall;
 
 /**
  *
@@ -67,7 +68,7 @@ public class Client {
     private DatagramPacket DpSend;
     private DatagramPacket DpReceive;
     private byte byte_read[] = new byte[512];
-    Thread voiceCall;
+    UDPVoiceCall voiceCall;
     public static boolean flag = true;
 
     //message listener
@@ -566,7 +567,7 @@ public class Client {
 
         Client.flag = true;
 
-        voiceCall = new Thread() {
+        voiceCall = new UDPVoiceCall(din, dout, byte_read){
             @Override
             public void run() {
                 while (Client.flag) {

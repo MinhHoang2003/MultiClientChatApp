@@ -18,7 +18,7 @@ public class ConnectionDB {
     private static final String DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=ChatApp";
     private static final String USER = "sa";
-    private static final String PASSWORD = "nam";
+    private static final String PASSWORD = "Hq*12345678";
 
     public static Connection openConnection() {
         Connection con = null;
