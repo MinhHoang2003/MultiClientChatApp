@@ -20,18 +20,13 @@ public class VoiceChatView extends javax.swing.JFrame {
     private final String roomName;
     private final int callState;
 
-    public VoiceChatView(String roomName, Client client,int callState) {
+    public VoiceChatView(String roomName, Client client, int callState) {
         initComponents();
         this.roomName = roomName;
         this.room.setText(roomName);
         this.client = client;
         this.callState = callState;
-        if(callState == MAKE_A_CALL) {
-            System.out.println("go here");
-            onCalling.setEnabled(false);
-        } else {
-            onCalling.setEnabled(true);
-        }
+        client.startVoiceChatThread();
         room.setText(roomName);
     }
 
@@ -41,7 +36,6 @@ public class VoiceChatView extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         stop = new javax.swing.JLabel();
-        onCalling = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         room = new javax.swing.JLabel();
 
@@ -58,14 +52,6 @@ public class VoiceChatView extends javax.swing.JFrame {
             }
         });
 
-        onCalling.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asset/onCalling.png"))); // NOI18N
-        onCalling.setText("On Calling");
-        onCalling.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                onCallingMouseClicked(evt);
-            }
-        });
-
         jLabel4.setFont(new java.awt.Font("Berlin Sans FB", 0, 18)); // NOI18N
         jLabel4.setText("Voice call on: ");
 
@@ -76,12 +62,6 @@ public class VoiceChatView extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(42, 42, 42)
-                .addComponent(stop)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 61, Short.MAX_VALUE)
-                .addComponent(onCalling)
-                .addGap(35, 35, 35))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -92,8 +72,11 @@ public class VoiceChatView extends javax.swing.JFrame {
                         .addComponent(jLabel4))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(106, 106, 106)
-                        .addComponent(room)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(room))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(117, 117, 117)
+                        .addComponent(stop)))
+                .addContainerGap(95, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -104,11 +87,9 @@ public class VoiceChatView extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(room)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 65, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(onCalling)
-                    .addComponent(stop))
-                .addGap(57, 57, 57))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
+                .addComponent(stop)
+                .addGap(49, 49, 49))
         );
 
         pack();
@@ -119,14 +100,9 @@ public class VoiceChatView extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_stopMouseClicked
 
-    private void onCallingMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onCallingMouseClicked
-        client.startVoiceChatThread();
-    }//GEN-LAST:event_onCallingMouseClicked
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel onCalling;
     private javax.swing.JLabel room;
     private javax.swing.JLabel stop;
     // End of variables declaration//GEN-END:variables

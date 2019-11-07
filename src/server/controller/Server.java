@@ -31,9 +31,6 @@ public class Server extends Thread implements OnSendAudioListener {
     private AccountManager accountManager;
     private RoomAndAccountManager roomAndAccountManager;
     private RoomManager roomManager;
-    private DatagramSocket dataReceive;
-    private DatagramSocket dataSend;
-    private byte[] byte_read = new byte [512];
 
     public Server(int port) {
         this.serverPort = port;
@@ -100,13 +97,7 @@ public class Server extends Thread implements OnSendAudioListener {
 
     @Override
     public void startUDPThread(Message message) {
-        try {
-            dataReceive = new DatagramSocket(12345);
-            dataSend = new DatagramSocket();
-            UDPVoiceCall udpThread = new UDPVoiceCall(dataReceive, dataSend, byte_read);
-            udpThread.start();
-        } catch (SocketException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        UDPVoiceCall udpThread = new UDPVoiceCall();
+        udpThread.start();
     }
 }

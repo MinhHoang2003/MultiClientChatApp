@@ -68,7 +68,8 @@ public class Client {
     private DatagramPacket DpSend;
     private DatagramPacket DpReceive;
     private byte byte_read[] = new byte[512];
-    UDPVoiceCall voiceCall;
+    private byte byte_write[] = new byte[512];
+    Thread voiceCall;
     public static boolean flag = true;
 
     //message listener
@@ -491,10 +492,11 @@ public class Client {
 
     public void sendVoiceCall() {
         try {
-            int read = audio_in.read(byte_read, 0, byte_read.length);
-            DpSend = new DatagramPacket(byte_read, byte_read.length, InetAddress.getLocalHost(), 12345);
+//            int read = audio_in.read(byte_read, 0, byte_read.length);
+//            byte_read = "hihi".getBytes();
+            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName("localhost"), 12345);
             dout.send(DpSend);
-            byte_read = new byte[512];
+            byte_write = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -504,7 +506,8 @@ public class Client {
         try {
             DpReceive = new DatagramPacket(byte_read, byte_read.length);
             din.receive(DpReceive);
-            audio_out.write(byte_read, 0, byte_read.length);
+            System.out.println(data(byte_read));
+//            audio_out.write(byte_read, 0, byte_read.length);
             byte_read = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -567,11 +570,12 @@ public class Client {
 
         Client.flag = true;
 
-        voiceCall = new UDPVoiceCall(din, dout, byte_read){
+        voiceCall = new Thread() {
             @Override
             public void run() {
                 while (Client.flag) {
                     sendVoiceCall();
+//                    Thread.sle
                     receiveVoiceCall();
                 }
             }
@@ -593,5 +597,19 @@ public class Client {
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public StringBuilder data(byte[] a) 
+    { 
+        if (a == null) 
+            return null; 
+        StringBuilder ret = new StringBuilder(); 
+        int i = 0; 
+        while (a[i] != 0) 
+        { 
+            ret.append((char) a[i]); 
+            i++; 
+        } 
+        return ret; 
     }
 }

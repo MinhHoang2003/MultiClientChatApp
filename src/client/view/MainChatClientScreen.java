@@ -368,6 +368,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }//GEN-LAST:event_menuInviteFriendActionPerformed
 
     private void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel7MouseClicked
+        client.makeVoiceCall(roomName);
         VoiceChatView voiceChatView = new VoiceChatView(roomName, this.client, VoiceChatView.MAKE_A_CALL);
         voiceChatView.addWindowListener(new WindowAdapter() {
             @Override
