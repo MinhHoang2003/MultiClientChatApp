@@ -30,7 +30,7 @@ public class LoginUI extends javax.swing.JFrame {
      */
     public LoginUI() {
         initComponents();
-        client = Client.getClient(this, "localhost", 8188);
+        client = Client.getClient(this, Client.serverIP, 8188);
         if (client.connection()) {
             Client.connectionStatus = true;
         } else {

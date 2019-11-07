@@ -314,10 +314,13 @@ public class ServerWorker extends Thread {
 
     private void startRinging(Message message) throws IOException {
         String roomName = message.getReceiver();
-        String user = message.getFrom();
+        String body = (String) message.getBody();
+        String toUser = body.split(" ")[0]; String fromIP = body.split(" ")[1];
+        String fromUser = message.getFrom();
         Room room = server.getRoomManager().getRoomByName(roomName);
         if (room != null) {
-            room.setStatusRinging(user);
+            System.out.println(fromIP);
+            room.setStatusRinging(toUser, fromUser, fromIP);
         }
     }
 

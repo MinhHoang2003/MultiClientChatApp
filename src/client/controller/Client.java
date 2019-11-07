@@ -57,6 +57,7 @@ public class Client {
     public static boolean connectionStatus = false;
     private final String serverName;
     private final int serverPort;
+    public static String serverIP = "192.168.0.104";
     private Socket socket;
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
@@ -68,7 +69,8 @@ public class Client {
     private DatagramPacket DpSend;
     private DatagramPacket DpReceive;
     private byte byte_read[] = new byte[512];
-    UDPVoiceCall voiceCall;
+    private byte byte_write[] = new byte[512];
+    Thread voiceCall;
     public static boolean flag = true;
 
     //message listener
@@ -480,9 +482,10 @@ public class Client {
         }
     }
 
-    public void makeVoiceCall(String roomName) {
+    public void makeVoiceCall(String roomName, String toClient, String fromIP) {
         try {
-            Message<String> message = new Message(Command.VOICECALL, "", userName, roomName);
+            System.out.println(fromIP);
+            Message<String> message = new Message(Command.VOICECALL, toClient + " " + fromIP, userName, roomName);
             serverOut.writeObject(message);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -491,10 +494,13 @@ public class Client {
 
     public void sendVoiceCall() {
         try {
-            int read = audio_in.read(byte_read, 0, byte_read.length);
-            DpSend = new DatagramPacket(byte_read, byte_read.length, InetAddress.getLocalHost(), 12345);
+//            int read = audio_in.read(byte_read, 0, byte_read.length);
+            String content = "hehehehheehe";
+            this.byte_write = content.getBytes();
+            System.out.println("Send " + content);
+            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(serverIP), 12345);
             dout.send(DpSend);
-            byte_read = new byte[512];
+            byte_write = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -504,7 +510,8 @@ public class Client {
         try {
             DpReceive = new DatagramPacket(byte_read, byte_read.length);
             din.receive(DpReceive);
-            audio_out.write(byte_read, 0, byte_read.length);
+            System.out.println(new String(this.byte_read));
+//            audio_out.write(byte_read, 0, byte_read.length);
             byte_read = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -567,12 +574,18 @@ public class Client {
 
         Client.flag = true;
 
-        voiceCall = new UDPVoiceCall(din, dout, byte_read){
+        voiceCall = new Thread() {
             @Override
             public void run() {
                 while (Client.flag) {
                     sendVoiceCall();
+                    System.out.println(Client.flag);
                     receiveVoiceCall();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        System.err.println(ex.getMessage());
+                    }
                 }
             }
         };

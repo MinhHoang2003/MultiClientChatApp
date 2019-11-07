@@ -103,7 +103,7 @@ public class Server extends Thread implements OnSendAudioListener {
         try {
             dataReceive = new DatagramSocket(12345);
             dataSend = new DatagramSocket();
-            UDPVoiceCall udpThread = new UDPVoiceCall(dataReceive, dataSend, byte_read);
+            UDPVoiceCall udpThread = new UDPVoiceCall(dataReceive, dataSend);
             udpThread.start();
         } catch (SocketException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
