@@ -320,7 +320,19 @@ public class ServerWorker extends Thread {
             room.setStatusRinging(toUser, fromUser, fromIP);
         }
     }
-
+    
+    private void respondAcceptVoiceCall(Message message) throws IOException {
+        String roomName = message.getReceiver();
+        String body = (String) message.getBody();
+        String toUser = body.split(" ")[1]; String fromIP = body.split(" ")[2];
+        String fromUser = message.getFrom();
+        Room room = server.getRoomManager().getRoomByName(roomName);
+        if (room != null) {
+            System.out.println(fromIP);
+            room.sendAcceptVoiceCallMessage(toUser, fromUser, fromIP);
+        }
+    }
+    
     public void setListener(OnSendAudioListener listener) {
         this.listener = listener;
     }
@@ -424,15 +436,14 @@ public class ServerWorker extends Thread {
     }
 
     private void handlerVoiceCall(Message message) throws IOException {
-        startRinging(message);
         String body = (String) message.getBody();
         if (body.startsWith("MAKE")) {
             this.startRinging(message);
-        } //else if () {
-//            
-//        } else {
-//            
-//        }
+        } else if (body.startsWith("ACCEPT")) {
+            this.respondAcceptVoiceCall(message);
+        } else {
+            
+        }
 //        listener.startUDPThread(messageCall);
     }
 }

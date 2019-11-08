@@ -36,7 +36,9 @@ import client.model.FileInfo;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -450,7 +452,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
 
     }
 
-    public void handleReceiverCall(String fromClient, String fromIP) {
+    public void handleReceiverCall(String fromClient, String fromIP) throws UnknownHostException {
         Object[] choices = {"Decline", "Accept"};
         Object defaultChoice = choices[1];
         int input = JOptionPane.showOptionDialog(this,
@@ -463,8 +465,9 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
                 defaultChoice);
 
         if (input == 1) { // accept
-//            VoiceChatView voiceChatView = new VoiceChatView(roomName, client);
-//            voiceChatView.setVisible(true);
+            client.acceptVoiceCall(roomName, fromClient, InetAddress.getLocalHost().getHostAddress().trim());
+            VoiceChatView voiceChatView = new VoiceChatView(roomName, client, fromClient, true);
+            voiceChatView.setVisible(true);
         } else { // refuse
             
         }
@@ -614,7 +617,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     public void onGetCall(String fromIP, String roomName, String fromClient) {
         System.out.println("go mainchat");
         if (this.roomName.equals(roomName)) {
-            handleReceiverCall(fromClient, fromIP);
+            try {
+                handleReceiverCall(fromClient, fromIP);
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(MainChatClientScreen.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 

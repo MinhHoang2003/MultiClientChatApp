@@ -119,6 +119,15 @@ public class Room {
             }
         }
     }
+    
+    public void sendAcceptVoiceCallMessage(String toClient, String fromClient, String fromIP) throws IOException {
+        for (ServerWorker worker : workers) {
+            if (worker.getAcount().getUserName().equals(toClient)) {
+                Message<String> message = new Message(Command.VOICECALL, "ACCEPT " + fromIP, fromClient, this.getName());
+                worker.send(message);
+            }
+        }
+    }
 
     public ServerWorker getWorkerByName(String userName) {
         for (ServerWorker worker : workers) {
