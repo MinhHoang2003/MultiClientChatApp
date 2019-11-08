@@ -23,7 +23,7 @@ public class VoiceChatView extends javax.swing.JFrame {
         this.toClient = toClient;
         this.room.setText(roomName);
         this.client = client;
-        client.startVoiceChatThread();
+//        client.startVoiceChatThread();
         room.setText(roomName);
         jLabel4.setText("Voice call to: " + toClient);
     }

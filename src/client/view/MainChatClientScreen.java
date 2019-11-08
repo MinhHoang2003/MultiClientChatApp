@@ -374,7 +374,6 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
             ChooseMemberToCall chooseMemberToCall = new ChooseMemberToCall(client, roomName, usersInRoom, listUserInRoom);
             chooseMemberToCall.setVisible(true);
         }
-        
     }//GEN-LAST:event_jLabel7MouseClicked
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
@@ -451,11 +450,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
 
     }
 
-    public void handleReceiverCall() {
+    public void handleReceiverCall(String fromClient, String fromIP) {
         Object[] choices = {"Decline", "Accept"};
         Object defaultChoice = choices[1];
         int input = JOptionPane.showOptionDialog(this,
-                "You got a call from" + "",
+                "You got a call from " + fromClient,
                 "Voice call",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
@@ -463,9 +462,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
                 choices,
                 defaultChoice);
 
-        if (input == 1) {
+        if (input == 1) { // accept
 //            VoiceChatView voiceChatView = new VoiceChatView(roomName, client);
 //            voiceChatView.setVisible(true);
+        } else { // refuse
+            
         }
     }
 
@@ -610,10 +611,10 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
 
     @Override
-    public void onGetCall(String status, String from) {
+    public void onGetCall(String fromIP, String roomName, String fromClient) {
         System.out.println("go mainchat");
-        if (!from.equals(client.getUserName())) {
-            handleReceiverCall();
+        if (this.roomName.equals(roomName)) {
+            handleReceiverCall(fromClient, fromIP);
         }
     }
 
