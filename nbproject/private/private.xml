@@ -3,15 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/client/view/MainChatClientScreen.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/view/ServerMain.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/controller/ServerWorker.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/dao/ImplAccountDAO.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/connectDB/ConnectionDB.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/client/controller/Client.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/controller/UDPVoiceCall.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/client/view/VoiceChatView.java</file>
-            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/controller/Server.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/view/LoginUI.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/view/VoiceChatView.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/server/controller/ServerWorker.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/server/model/Room.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/controller/Command.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/view/ChooseMemberToCall.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/controller/Client.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/view/MainChatClientScreen.java</file>
+            <file>file:/C:/Users/DoQuan_User/Desktop/MultiClientChatApp/src/client/model/Message.java</file>
         </group>
     </open-files>
 </project-private>

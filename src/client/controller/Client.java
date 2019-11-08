@@ -58,7 +58,7 @@ public class Client {
     public static boolean connectionStatus = false;
     private final String serverName;
     private final int serverPort;
-    public static String serverIP = "192.168.1.10";
+    public static String serverIP = "192.168.1.52";
     private Socket socket;
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
@@ -204,6 +204,7 @@ public class Client {
     public void setOnRespondVoiceCall(OnRespondVoiceCall listener) {
         this.onRespondVoiceCall = listener;
     }
+
     public boolean connection() {
         try {
             this.socket = new Socket(serverName, serverPort);
@@ -493,7 +494,7 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void acceptVoiceCall(String roomName, String toClient, String fromIP) {
         try {
             System.out.println(fromIP);
@@ -506,9 +507,10 @@ public class Client {
 
     public void sendVoiceCall() {
         try {
-            int read = audio_in.read(byte_read, 0, byte_read.length);
-            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(toIP), 12345);
-            System.out.println(toIP);
+            int read = audio_in.read(byte_write, 0, byte_write.length);
+//            byte_write = "from hoang".getBytes();
+            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(toIP), 12346);
+            System.out.println(byte_write);
             dout.send(DpSend);
             byte_write = new byte[512];
         } catch (IOException ex) {
@@ -521,6 +523,7 @@ public class Client {
             DpReceive = new DatagramPacket(byte_read, byte_read.length);
             din.receive(DpReceive);
             audio_out.write(byte_read, 0, byte_read.length);
+            System.out.println(byte_read);
             byte_read = new byte[512];
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -560,7 +563,7 @@ public class Client {
 
     public void initSocketIncome() {
         try {
-            din = new DatagramSocket(12346);
+            din = new DatagramSocket(12345);
         } catch (SocketException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -587,18 +590,24 @@ public class Client {
             @Override
             public void run() {
                 while (Client.flag) {
+                    System.out.println("call to " + toIP);
                     sendVoiceCall();
-                    receiveVoiceCall();
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        System.err.println(ex.getMessage());
-                    }
                 }
             }
         };
-
         voiceCall.start();
+
+        Thread receiveThread = new Thread() {
+            @Override
+            public void run() {
+                while (Client.flag) {
+                    System.out.println("-------------receive from " + toIP);
+                    receiveVoiceCall();
+                }
+            }
+
+        };
+        receiveThread.start();
     }
 
     public void stopVoiceChatThread() {
@@ -615,24 +624,23 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public StringBuilder data(byte[] a) 
-    { 
-        if (a == null) 
-            return null; 
-        StringBuilder ret = new StringBuilder(); 
-        int i = 0; 
-        while (a[i] != 0) 
-        { 
-            ret.append((char) a[i]); 
-            i++; 
-        } 
-        return ret; 
+
+    public StringBuilder data(byte[] a) {
+        if (a == null) {
+            return null;
+        }
+        StringBuilder ret = new StringBuilder();
+        int i = 0;
+        while (a[i] != 0) {
+            ret.append((char) a[i]);
+            i++;
+        }
+        return ret;
     }
 
     private void handlerIncomingCall(Message message) {
         String body = (String) message.getBody();
-        String []token = body.split(" ");
+        String[] token = body.split(" ");
         if (token[0].equals("MAKE")) {
             this.toIP = token[1];
             for (OnGetCallListener listener : onGetCallListeners) {
@@ -642,7 +650,7 @@ public class Client {
             this.toIP = token[1];
             onRespondVoiceCall.acceptVoiceCall();
         } else {
-            
+
         }
         System.out.println("call listener");
     }
