@@ -452,7 +452,7 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
 
     }
 
-    public void handleReceiverCall(String fromClient, String fromIP) throws UnknownHostException {
+    public void handleReceiverCall(String fromClient) throws UnknownHostException {
         Object[] choices = {"Decline", "Accept"};
         Object defaultChoice = choices[1];
         int input = JOptionPane.showOptionDialog(this,
@@ -614,11 +614,11 @@ public class MainChatClientScreen extends javax.swing.JFrame implements
     }
 
     @Override
-    public void onGetCall(String fromIP, String roomName, String fromClient) {
+    public void onGetCall(String roomName, String fromClient) {
         System.out.println("go mainchat");
         if (this.roomName.equals(roomName)) {
             try {
-                handleReceiverCall(fromClient, fromIP);
+                handleReceiverCall(fromClient);
             } catch (UnknownHostException ex) {
                 Logger.getLogger(MainChatClientScreen.class.getName()).log(Level.SEVERE, null, ex);
             }

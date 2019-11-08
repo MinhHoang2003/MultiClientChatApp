@@ -33,6 +33,7 @@ public class VoiceChatView extends javax.swing.JFrame implements OnRespondVoiceC
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
         if (this.isConnected) {
+            statusWhenCalling.setText("Connected");
             client.startVoiceChatThread();
         }
     }
