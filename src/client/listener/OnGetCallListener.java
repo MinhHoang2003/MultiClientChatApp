@@ -10,5 +10,5 @@ package client.listener;
  * @author DoQuan_User
  */
 public interface OnGetCallListener {
-    public void onGetCall(String fromIP, String roomName, String fromClient);
+    public void onGetCall(String roomName, String fromClient);
 }

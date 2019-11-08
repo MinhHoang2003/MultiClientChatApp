@@ -71,6 +71,7 @@ public class Client {
     private DatagramPacket DpReceive;
     private byte byte_read[] = new byte[512];
     private byte byte_write[] = new byte[512];
+    private String toIP;
     Thread voiceCall;
     public static boolean flag = true;
 
@@ -504,38 +505,26 @@ public class Client {
     }
 
     public void sendVoiceCall() {
-//        try {
-////            int read = audio_in.read(byte_read, 0, byte_read.length);
-//<<<<<<< HEAD
-////            byte_read = "hihi".getBytes();
-//            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName("localhost"), 12345);
-//=======
-//            String content = "hehehehheehe";
-//            this.byte_write = content.getBytes();
-//            System.out.println("Send " + content);
-//            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(serverIP), 12345);
-//>>>>>>> 9d0033ca9153ee94683b9140d9b4b9bb952d15d7
-//            dout.send(DpSend);
-//            byte_write = new byte[512];
-//        } catch (IOException ex) {
-//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        try {
+            int read = audio_in.read(byte_read, 0, byte_read.length);
+            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(toIP), 12345);
+            System.out.println(toIP);
+            dout.send(DpSend);
+            byte_write = new byte[512];
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void receiveVoiceCall() {
-//        try {
-//            DpReceive = new DatagramPacket(byte_read, byte_read.length);
-//            din.receive(DpReceive);
-//<<<<<<< HEAD
-//            System.out.println(data(byte_read));
-//=======
-//            System.out.println(new String(this.byte_read));
-//>>>>>>> 9d0033ca9153ee94683b9140d9b4b9bb952d15d7
-////            audio_out.write(byte_read, 0, byte_read.length);
-//            byte_read = new byte[512];
-//        } catch (IOException ex) {
-//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        try {
+            DpReceive = new DatagramPacket(byte_read, byte_read.length);
+            din.receive(DpReceive);
+            audio_out.write(byte_read, 0, byte_read.length);
+            byte_read = new byte[512];
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void createRoom(String roomName, String roomType, String password) {
@@ -645,10 +634,12 @@ public class Client {
         String body = (String) message.getBody();
         String []token = body.split(" ");
         if (token[0].equals("MAKE")) {
+            this.toIP = token[1];
             for (OnGetCallListener listener : onGetCallListeners) {
-                listener.onGetCall(token[1], message.getReceiver(), message.getFrom());
+                listener.onGetCall(message.getReceiver(), message.getFrom());
             }
         } else if (token[0].equals("ACCEPT")) {
+            this.toIP = token[1];
             onRespondVoiceCall.acceptVoiceCall();
         } else {
             
