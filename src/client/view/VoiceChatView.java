@@ -12,22 +12,20 @@ import client.controller.Client;
  * @author hoang
  */
 public class VoiceChatView extends javax.swing.JFrame {
-    
-    public static int MAKE_A_CALL = 1;
-    public static int RECEIVE_A_CALL = 2;
 
     private final Client client;
     private final String roomName;
-    private final int callState;
+    private final String toClient;
 
-    public VoiceChatView(String roomName, Client client, int callState) {
+    public VoiceChatView(String roomName, Client client, String toClient) {
         initComponents();
         this.roomName = roomName;
+        this.toClient = toClient;
         this.room.setText(roomName);
         this.client = client;
-        this.callState = callState;
-        client.startVoiceChatThread();
+//        client.startVoiceChatThread();
         room.setText(roomName);
+        jLabel4.setText("Voice call to: " + toClient);
     }
 
     @SuppressWarnings("unchecked")
@@ -53,7 +51,7 @@ public class VoiceChatView extends javax.swing.JFrame {
         });
 
         jLabel4.setFont(new java.awt.Font("Berlin Sans FB", 0, 18)); // NOI18N
-        jLabel4.setText("Voice call on: ");
+        jLabel4.setText("Voice call to: ");
 
         room.setFont(new java.awt.Font("Berlin Sans FB", 0, 18)); // NOI18N
         room.setText("jLabel5");
@@ -68,15 +66,14 @@ public class VoiceChatView extends javax.swing.JFrame {
                         .addGap(106, 106, 106)
                         .addComponent(jLabel1))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(87, 87, 87)
-                        .addComponent(jLabel4))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(106, 106, 106)
-                        .addComponent(room))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(stop)
+                            .addComponent(room)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(117, 117, 117)
-                        .addComponent(stop)))
-                .addContainerGap(95, Short.MAX_VALUE))
+                        .addGap(52, 52, 52)
+                        .addComponent(jLabel4)))
+                .addContainerGap(124, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -87,9 +84,9 @@ public class VoiceChatView extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(room)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 65, Short.MAX_VALUE)
                 .addComponent(stop)
-                .addGap(49, 49, 49))
+                .addGap(57, 57, 57))
         );
 
         pack();

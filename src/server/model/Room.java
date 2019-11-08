@@ -111,10 +111,10 @@ public class Room {
 
     }
 
-    public void setStatusRinging(String from) throws IOException {
+    public void setStatusRinging(String toClient, String fromClient, String fromIP) throws IOException {
         for (ServerWorker worker : workers) {
-            if (!worker.getAcount().getUserName().equals(from)) {
-                Message<String> message = new Message(Command.VOICECALL, "", from, this.getName());
+            if (worker.getAcount().getUserName().equals(toClient)) {
+                Message<String> message = new Message(Command.VOICECALL, "MAKE " + fromIP, fromClient, this.getName());
                 worker.send(message);
             }
         }

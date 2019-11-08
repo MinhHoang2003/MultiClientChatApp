@@ -5,6 +5,7 @@
  */
 package server.controller;
 
+import client.controller.Client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -19,6 +20,7 @@ import java.util.logging.Logger;
  * @author dohongquan
  */
 public class UDPVoiceCall extends Thread {
+
     private DatagramSocket dataReceive;
     private DatagramSocket dataSend;
     private DatagramSocket dataSendMe;
@@ -34,7 +36,12 @@ public class UDPVoiceCall extends Thread {
             Logger.getLogger(UDPVoiceCall.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
+    public UDPVoiceCall(DatagramSocket dataReceive, DatagramSocket dataSend) {
+        this.dataReceive = dataReceive;
+        this.dataSend = dataSend;
+    }
+
     @Override
     public void run() {
         System.out.println("go run");

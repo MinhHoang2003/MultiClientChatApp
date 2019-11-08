@@ -125,10 +125,7 @@ public class ServerWorker extends Thread {
                         handlerInviteFriend(message);
                         break;
                     case VOICECALL:
-                        startRinging(message);
-                        messageCall = message;
-                        message = null;
-                        listener.startUDPThread(messageCall);
+                        handlerVoiceCall(message);
                         break;
                     case DELETE:
                         handlerDeleteRoom(message);
@@ -314,10 +311,13 @@ public class ServerWorker extends Thread {
 
     private void startRinging(Message message) throws IOException {
         String roomName = message.getReceiver();
-        String user = message.getFrom();
+        String body = (String) message.getBody();
+        String toUser = body.split(" ")[1]; String fromIP = body.split(" ")[2];
+        String fromUser = message.getFrom();
         Room room = server.getRoomManager().getRoomByName(roomName);
         if (room != null) {
-            room.setStatusRinging(user);
+            System.out.println(fromIP);
+            room.setStatusRinging(toUser, fromUser, fromIP);
         }
     }
 
@@ -421,5 +421,18 @@ public class ServerWorker extends Thread {
             deleteResponse = new Message<>(Command.DELETE, "fail", roomName, user);
             send(deleteResponse);
         }
+    }
+
+    private void handlerVoiceCall(Message message) throws IOException {
+        startRinging(message);
+        String body = (String) message.getBody();
+        if (body.startsWith("MAKE")) {
+            this.startRinging(message);
+        } //else if () {
+//            
+//        } else {
+//            
+//        }
+//        listener.startUDPThread(messageCall);
     }
 }

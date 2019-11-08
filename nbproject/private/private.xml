@@ -6,6 +6,8 @@
             <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/client/view/MainChatClientScreen.java</file>
             <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/view/ServerMain.java</file>
             <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/controller/ServerWorker.java</file>
+            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/dao/ImplAccountDAO.java</file>
+            <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/connectDB/ConnectionDB.java</file>
             <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/client/controller/Client.java</file>
             <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/server/controller/UDPVoiceCall.java</file>
             <file>file:/Users/dohongquan/Desktop/MultiClientChatApp/src/client/view/VoiceChatView.java</file>

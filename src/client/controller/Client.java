@@ -57,6 +57,7 @@ public class Client {
     public static boolean connectionStatus = false;
     private final String serverName;
     private final int serverPort;
+    public static String serverIP = "localhost";
     private Socket socket;
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
@@ -301,11 +302,7 @@ public class Client {
                             }
                             break;
                         case VOICECALL:
-                            String receiveSignal = (String) message.getBody();
-                            System.out.println("call listener");
-                            for (OnGetCallListener listener : onGetCallListeners) {
-                                listener.onGetCall(receiveSignal, message.getFrom());
-                            }
+                            handlerIncomingCall(message);
                             break;
                         case HISTORY:
                             List<String> historys = (List<String>) message.getBody();
@@ -481,9 +478,10 @@ public class Client {
         }
     }
 
-    public void makeVoiceCall(String roomName) {
+    public void makeVoiceCall(String roomName, String toClient, String fromIP) {
         try {
-            Message<String> message = new Message(Command.VOICECALL, "", userName, roomName);
+            System.out.println(fromIP);
+            Message<String> message = new Message(Command.VOICECALL, "MAKE " + toClient + " " + fromIP, userName, roomName);
             serverOut.writeObject(message);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -491,27 +489,38 @@ public class Client {
     }
 
     public void sendVoiceCall() {
-        try {
-//            int read = audio_in.read(byte_read, 0, byte_read.length);
-//            byte_read = "hihi".getBytes();
-            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName("localhost"), 12345);
-            dout.send(DpSend);
-            byte_write = new byte[512];
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+////            int read = audio_in.read(byte_read, 0, byte_read.length);
+//<<<<<<< HEAD
+////            byte_read = "hihi".getBytes();
+//            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName("localhost"), 12345);
+//=======
+//            String content = "hehehehheehe";
+//            this.byte_write = content.getBytes();
+//            System.out.println("Send " + content);
+//            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(serverIP), 12345);
+//>>>>>>> 9d0033ca9153ee94683b9140d9b4b9bb952d15d7
+//            dout.send(DpSend);
+//            byte_write = new byte[512];
+//        } catch (IOException ex) {
+//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }
 
     public void receiveVoiceCall() {
-        try {
-            DpReceive = new DatagramPacket(byte_read, byte_read.length);
-            din.receive(DpReceive);
-            System.out.println(data(byte_read));
-//            audio_out.write(byte_read, 0, byte_read.length);
-            byte_read = new byte[512];
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            DpReceive = new DatagramPacket(byte_read, byte_read.length);
+//            din.receive(DpReceive);
+//<<<<<<< HEAD
+//            System.out.println(data(byte_read));
+//=======
+//            System.out.println(new String(this.byte_read));
+//>>>>>>> 9d0033ca9153ee94683b9140d9b4b9bb952d15d7
+////            audio_out.write(byte_read, 0, byte_read.length);
+//            byte_read = new byte[512];
+//        } catch (IOException ex) {
+//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }
 
     public void createRoom(String roomName, String roomType, String password) {
@@ -575,8 +584,12 @@ public class Client {
             public void run() {
                 while (Client.flag) {
                     sendVoiceCall();
-//                    Thread.sle
                     receiveVoiceCall();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        System.err.println(ex.getMessage());
+                    }
                 }
             }
         };
@@ -611,5 +624,20 @@ public class Client {
             i++; 
         } 
         return ret; 
+    }
+
+    private void handlerIncomingCall(Message message) {
+        String body = (String) message.getBody();
+        String []token = body.split(" ");
+        if (token[0].equals("MAKE")) {
+            for (OnGetCallListener listener : onGetCallListeners) {
+                listener.onGetCall(token[1], message.getReceiver(), message.getFrom());
+            }
+        } else if (token[0].equals("ACCEPT")) {
+            
+        } else {
+            
+        }
+        System.out.println("call listener");
     }
 }
