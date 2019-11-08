@@ -124,7 +124,7 @@ public class ChooseMemberToCall extends javax.swing.JFrame {
             try {
                 this.dispose();
                 client.makeVoiceCall(roomName, jList1.getSelectedValue(), InetAddress.getLocalHost().getHostAddress().trim());
-                VoiceChatView voiceChatView = new VoiceChatView(roomName, this.client, jList1.getSelectedValue());
+                VoiceChatView voiceChatView = new VoiceChatView(roomName, this.client, jList1.getSelectedValue(), false);
                 voiceChatView.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {

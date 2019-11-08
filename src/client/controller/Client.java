@@ -16,6 +16,7 @@ import client.listener.OnGetRoomsListener;
 import client.listener.OnInviteFriendListener;
 import client.listener.OnJoinRoomListener;
 import client.listener.OnLeaveRoomListener;
+import client.listener.OnRespondVoiceCall;
 import client.listener.UserStatusListener;
 import client.view.LoginUI;
 import java.io.IOException;
@@ -86,6 +87,7 @@ public class Client {
     private OnCreateRoomListener.OnCreateRoomResult onCreateRoomResult;
     private OnInviteFriendListener onInviteFriendListener;
     private List<OnDeleteRoomListener> onDeleteRoomListeners = new ArrayList<>();
+    private OnRespondVoiceCall onRespondVoiceCall;
 
     private Client(LoginUI clientView, String serverName, int port) {
         this.serverName = serverName;
@@ -198,6 +200,9 @@ public class Client {
         this.onDeleteRoomListeners.add(listener);
     }
 
+    public void setOnRespondVoiceCall(OnRespondVoiceCall listener) {
+        this.onRespondVoiceCall = listener;
+    }
     public boolean connection() {
         try {
             this.socket = new Socket(serverName, serverPort);
@@ -487,6 +492,16 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public void acceptVoiceCall(String roomName, String toClient, String fromIP) {
+        try {
+            System.out.println(fromIP);
+            Message<String> message = new Message(Command.VOICECALL, "ACCEPT " + toClient + " " + fromIP, userName, roomName);
+            serverOut.writeObject(message);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     public void sendVoiceCall() {
 //        try {
@@ -634,7 +649,7 @@ public class Client {
                 listener.onGetCall(token[1], message.getReceiver(), message.getFrom());
             }
         } else if (token[0].equals("ACCEPT")) {
-            
+            onRespondVoiceCall.acceptVoiceCall();
         } else {
             
         }
