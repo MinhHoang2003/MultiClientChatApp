@@ -19,10 +19,10 @@ public class Message<T> implements Serializable {
     private String from;
     private String receiver;
 
-    public Message(Command cmd, T body, String userName, String receiver) {
+    public Message(Command cmd, T body, String from, String receiver) {
         this.cmd = cmd;
         this.body = body;
-        this.from = userName;
+        this.from = from;
         this.receiver = receiver;
     }
 

@@ -57,7 +57,7 @@ public class Client {
     public static boolean connectionStatus = false;
     private final String serverName;
     private final int serverPort;
-    public static String serverIP = "192.168.0.104";
+    public static String serverIP = "192.168.1.10";
     private Socket socket;
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
@@ -485,7 +485,7 @@ public class Client {
     public void makeVoiceCall(String roomName, String toClient, String fromIP) {
         try {
             System.out.println(fromIP);
-            Message<String> message = new Message(Command.VOICECALL, toClient + " " + fromIP, userName, roomName);
+            Message<String> message = new Message(Command.VOICECALL,"MAKE "+ toClient + " " + fromIP, userName, roomName);
             serverOut.writeObject(message);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
