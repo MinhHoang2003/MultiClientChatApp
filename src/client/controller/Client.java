@@ -63,16 +63,10 @@ public class Client {
     private ObjectOutputStream serverOut;
     private ObjectInputStream serverIn;
     private String userName;
-    private TargetDataLine audio_in;
-    private SourceDataLine audio_out;
-    private DatagramSocket dout;
-    private DatagramSocket din;
-    private DatagramPacket DpSend;
-    private DatagramPacket DpReceive;
-    private byte byte_read[] = new byte[512];
-    private byte byte_write[] = new byte[512];
+    // udp
+    private Sender sender;
+    private Receiver receiver;
     private String toIP;
-    Thread voiceCall;
     public static boolean flag = true;
 
     //message listener
@@ -102,47 +96,6 @@ public class Client {
             client = new Client(clientView, serverName, port);
         }
         return client;
-    }
-
-    public static AudioFormat getAudioFormat() {
-        float sampleRate = 8000.0F;
-        int sampleSizeInbits = 16;
-        int channel = 2;
-        boolean signed = true;
-        boolean bigEndian = false;
-        return new AudioFormat(sampleRate, sampleSizeInbits, channel, signed, bigEndian);
-    }
-
-    public void init_audio_in() {
-        try {
-            AudioFormat format = getAudioFormat();
-            DataLine.Info info_in = new DataLine.Info(TargetDataLine.class, format);
-            if (!AudioSystem.isLineSupported(info_in)) {
-                System.out.println("Line for in not supported");
-                System.exit(0);
-            }
-            audio_in = (TargetDataLine) AudioSystem.getLine(info_in);
-            audio_in.open(format);
-            audio_in.start();
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void init_audio_out() {
-        try {
-            AudioFormat format = getAudioFormat();
-            DataLine.Info info_out = new DataLine.Info(SourceDataLine.class, format);
-            if (!AudioSystem.isLineSupported(info_out)) {
-                System.out.println("Line for out not supported");
-                System.exit(0);
-            }
-            audio_out = (SourceDataLine) AudioSystem.getLine(info_out);
-            audio_out.open(format);
-            audio_out.start();
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     public void addMessageListener(MessageListener listener) {
@@ -505,31 +458,6 @@ public class Client {
         }
     }
 
-    public void sendVoiceCall() {
-        try {
-            int read = audio_in.read(byte_write, 0, byte_write.length);
-//            byte_write = "from hoang".getBytes();
-            DpSend = new DatagramPacket(byte_write, byte_write.length, InetAddress.getByName(toIP), 12346);
-            System.out.println(byte_write);
-            dout.send(DpSend);
-            byte_write = new byte[512];
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void receiveVoiceCall() {
-        try {
-            DpReceive = new DatagramPacket(byte_read, byte_read.length);
-            din.receive(DpReceive);
-            audio_out.write(byte_read, 0, byte_read.length);
-            System.out.println(byte_read);
-            byte_read = new byte[512];
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     public void createRoom(String roomName, String roomType, String password) {
         try {
             String createRoomMessage = roomName + "|" + roomType + "|" + password;
@@ -561,59 +489,22 @@ public class Client {
         }
     }
 
-    public void initSocketIncome() {
-        try {
-            din = new DatagramSocket(12345);
-        } catch (SocketException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void initSocketOutcome() {
-        try {
-            dout = new DatagramSocket();
-        } catch (SocketException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     public void startVoiceChatThread() {
-        initSocketIncome();
-        initSocketOutcome();
-
-        this.init_audio_in();
-        this.init_audio_out();
-
-        Client.flag = true;
-
-        voiceCall = new Thread() {
-            @Override
-            public void run() {
-                while (Client.flag) {
-                    System.out.println("call to " + toIP);
-                    sendVoiceCall();
-                }
-            }
-        };
-        voiceCall.start();
-
-        Thread receiveThread = new Thread() {
-            @Override
-            public void run() {
-                while (Client.flag) {
-                    System.out.println("-------------receive from " + toIP);
-                    receiveVoiceCall();
-                }
-            }
-
-        };
-        receiveThread.start();
+        this.receiver = new Receiver("localhost", 12345);
+        this.sender = new Sender(toIP, 12346);
+        receiver.start();
+        sender.start();
     }
 
     public void stopVoiceChatThread() {
         Client.flag = false;
-        audio_out.close();
-        audio_in.close();
+        if (receiver.isAlive()) {
+            receiver.interrupt();
+        }
+        if(sender.isAlive()){
+            sender.interrupt();
+        }
+
     }
 
     public void deleteRoom(String roomName) {
